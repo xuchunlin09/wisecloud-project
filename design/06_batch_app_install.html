@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch App Install - WiseCloud Mobile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-mockup {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: #1a73e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .time {
+            font-weight: bold;
+        }
+
+        .battery-info {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header {
+            background: #1a73e8;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step-circle.active {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .step-circle.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .step-label.active {
+            color: #1a73e8;
+            font-weight: 600;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background: #1a73e8;
+            transition: width 0.3s ease;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 0;
+        }
+
+        .radio-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .radio-text {
+            font-size: 14px;
+            color: #333;
+        }
+
+
+
+        .time-frame-controls {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .time-frame-controls.show {
+            display: block !important;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 200px;
+            }
+        }
+
+        .time-frame-header {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .time-selectors {
+            display: flex;
+            gap: 15px;
+        }
+
+        .time-selector {
+            flex: 1;
+        }
+
+        .time-selector label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .time-selector select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .toggle-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background: #ccc;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #1a73e8;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(22px);
+        }
+
+        .time-frame-section {
+            margin-top: 15px;
+            padding: 15px 0;
+            border-top: 1px solid #f0f0f0;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .time-frame-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .time-frame-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .time-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .time-select {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .time-select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        .time-separator {
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+            margin-top: 18px;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 100px;
+                padding-top: 15px;
+                padding-bottom: 15px;
+            }
+        }
+
+        .app-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1005;
+        }
+
+        .app-item-content {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .app-item-content:hover {
+            background: #e9ecef;
+        }
+
+        .app-item.selected .app-item-content {
+            background: #e3f2fd;
+        }
+        
+        .app-item.selected {
+            border: 2px solid #1a73e8;
+            border-radius: 8px;
+        }
+
+        .selected-version {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: #f0f7ff;
+            border: 1px solid #1a73e8;
+            border-radius: 6px;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .selected-version.show {
+            display: block;
+        }
+
+        .selected-version-label {
+            font-size: 12px;
+            color: #1a73e8;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .selected-version-info {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .selected-version-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .app-radio {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .app-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin-right: 12px;
+            background: #1a73e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .app-info {
+            flex: 1;
+        }
+
+        .app-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .app-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .version-selector {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 80%;
+            background: #ffffff;
+            border-radius: 20px 0 0 20px;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+            z-index: 1006;
+            display: flex;
+            flex-direction: column;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .version-selector.show {
+            pointer-events: auto;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .version-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1002;
+            opacity: 0;
+            transition: all 0.3s ease-out;
+            border-radius: 30px;
+            pointer-events: none; /* prevent blocking */
+            visibility: hidden;   /* hide by default */
+        }
+
+        .version-overlay.show {
+            opacity: 1;
+            visibility: visible;  /* visible when active */
+            pointer-events: auto; /* enable click to close */
+        }
+
+        .version-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .version-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #666;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .version-close:hover {
+            background: #e9ecef;
+        }
+
+        .version-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .version-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .version-item:last-child {
+            border-bottom: none;
+        }
+
+        .version-item:hover {
+            background: #f8f9fa;
+        }
+
+        .version-item.selected {
+            background: #e3f2fd;
+            border-left: 4px solid #1a73e8;
+        }
+
+        .version-radio {
+            margin-right: 15px;
+            width: 18px;
+            height: 18px;
+            accent-color: #1a73e8;
+        }
+
+        .version-info {
+            flex: 1;
+        }
+
+        .version-number {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .version-date {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .version-size {
+            font-size: 12px;
+            color: #999;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .tag-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .device-counter {
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .tag-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            min-width: 120px;
+            flex: 1;
+            gap: 8px;
+        }
+
+        .tag-name {
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .device-count {
+            font-size: 12px;
+            background: rgba(0,0,0,0.1);
+            padding: 2px 6px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            margin-top:8px;
+            color: #999;
+        }
+
+        .tag-item.selected .device-count {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .tag-item:hover {
+            background: #e0e0e0;
+        }
+
+        .tag-item.selected {
+            background: #e3f2fd;
+            border-color: #1a73e8;
+            color: #1a73e8;
+        }
+
+        .tag-checkbox {
+            display: none;
+        }
+
+        .navigation {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            z-index: 1100;
+            position: relative;
+        }
+
+        .navigation.overlay-active {
+            pointer-events: auto;
+            position: relative;
+            z-index: 1101;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn.secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .nav-btn.secondary:hover {
+            background: #e9ecef;
+        }
+
+        .nav-btn.primary {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .nav-btn.primary:hover {
+            background: #1557b0;
+        }
+
+        .nav-btn:disabled {
+            background: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .summary-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            text-align: right;
+        }
+
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 40px 0 40px;
+            border: 1px solid #e9ecef;
+            border-radius: 22px;
+            font-size: 14px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            background: white;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            color: #666;
+            font-size: 14px;
+            z-index: 1;
+        }
+
+        .clear-icon {
+            position: absolute;
+            right: 14px;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .clear-icon:hover {
+            color: #333;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Simple switch styles */
+        input[type="checkbox"]:checked {
+            background: #1a73e8 !important;
+        }
+
+        input[type="checkbox"]::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input[type="checkbox"]:checked::before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-mockup">
+        <div class="screen">
+            <div class="status-bar">
+                <div class="time">9:41</div>
+                <div class="battery-info">
+                    <span>100%</span>
+                    <i class="fas fa-battery-full"></i>
+                </div>
+            </div>
+
+            <div class="header">
+                <button class="back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="header-title">Batch App Install</div>
+            </div>
+
+            <div class="content">
+                <div class="progress-indicator">
+                    <div class="progress-line">
+                        <div class="progress-line-fill" id="progressFill"></div>
+                    </div>
+                    <div class="step">
+                        <div class="step-circle active" id="step1Circle">1</div>
+                        <div class="step-label active" id="step1Label">Task Config</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-circle" id="step2Circle">2</div>
+                        <div class="step-label" id="step2Label">Select App</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-circle" id="step3Circle">3</div>
+                        <div class="step-label" id="step3Label">Select Devices</div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Task Configuration -->
+                <div id="step1Content" class="step-content">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-edit"></i>
+                            Task Information
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Task Name</label>
+                            <input type="text" id="taskName" class="form-input" value="App Installation Task - 2024-01-15" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Update Strategy</label>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" id="wifiOnlySwitch" onchange="console.log('WiFi switch:', this.checked)" style="
+                                        width: 44px;
+                                        height: 24px;
+                                        appearance: none;
+                                        background: #ddd;
+                                        border-radius: 12px;
+                                        position: relative;
+                                        cursor: pointer;
+                                        transition: background 0.3s;
+                                    " />
+                                    <span style="font-size: 14px; font-weight: 500;">WiFi Only Update</span>
+                                </label>
+                                <div style="font-size: 12px; color: #666; margin-left: 56px; margin-top: 4px;">Only update when connected to WiFi</div>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" id="idleTimeSwitch" onchange="toggleTimeControls(this)" style="
+                                        width: 44px;
+                                        height: 24px;
+                                        appearance: none;
+                                        background: #ddd;
+                                        border-radius: 12px;
+                                        position: relative;
+                                        cursor: pointer;
+                                        transition: background 0.3s;
+                                    " />
+                                    <span style="font-size: 14px; font-weight: 500;">Idle Time Update</span>
+                                </label>
+                                <div style="font-size: 12px; color: #666; margin-left: 56px; margin-top: 4px;">Update during specified idle hours</div>
+                            </div>
+                            <div class="time-frame-controls" id="timeFrameControls" style="display: none;">
+                                <div class="time-frame-header">Set Idle Time Range</div>
+                                <div class="time-selectors">
+                                    <div class="time-selector">
+                                        <label>From</label>
+                                        <select id="fromTime">
+                                            <option value="00:00">00:00</option>
+                                            <option value="01:00">01:00</option>
+                                            <option value="02:00">02:00</option>
+                                            <option value="03:00" selected>03:00</option>
+                                            <option value="04:00">04:00</option>
+                                            <option value="05:00">05:00</option>
+                                            <option value="06:00">06:00</option>
+                                            <option value="07:00">07:00</option>
+                                            <option value="08:00">08:00</option>
+                                            <option value="09:00">09:00</option>
+                                            <option value="10:00">10:00</option>
+                                            <option value="11:00">11:00</option>
+                                            <option value="12:00">12:00</option>
+                                            <option value="13:00">13:00</option>
+                                            <option value="14:00">14:00</option>
+                                            <option value="15:00">15:00</option>
+                                            <option value="16:00">16:00</option>
+                                            <option value="17:00">17:00</option>
+                                            <option value="18:00">18:00</option>
+                                            <option value="19:00">19:00</option>
+                                            <option value="20:00">20:00</option>
+                                            <option value="21:00">21:00</option>
+                                            <option value="22:00">22:00</option>
+                                            <option value="23:00">23:00</option>
+                                        </select>
+                                    </div>
+                                    <div class="time-selector">
+                                        <label>To</label>
+                                        <select id="toTime">
+                                            <option value="01:00">01:00</option>
+                                            <option value="02:00">02:00</option>
+                                            <option value="03:00">03:00</option>
+                                            <option value="04:00">04:00</option>
+                                            <option value="05:00" selected>05:00</option>
+                                            <option value="06:00">06:00</option>
+                                            <option value="07:00">07:00</option>
+                                            <option value="08:00">08:00</option>
+                                            <option value="09:00">09:00</option>
+                                            <option value="10:00">10:00</option>
+                                            <option value="11:00">11:00</option>
+                                            <option value="12:00">12:00</option>
+                                            <option value="13:00">13:00</option>
+                                            <option value="14:00">14:00</option>
+                                            <option value="15:00">15:00</option>
+                                            <option value="16:00">16:00</option>
+                                            <option value="17:00">17:00</option>
+                                            <option value="18:00">18:00</option>
+                                            <option value="19:00">19:00</option>
+                                            <option value="20:00">20:00</option>
+                                            <option value="21:00">21:00</option>
+                                            <option value="22:00">22:00</option>
+                                            <option value="23:00">23:00</option>
+                                            <option value="23:59">23:59</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Step 2: Application Selection -->
+                <div id="step2Content" class="hidden">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-mobile-alt"></i>
+                            Select Application
+                        </div>
+                        
+                        <!-- App Search -->
+                        <div class="search-container">
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" 
+                                       class="search-input" 
+                                       id="appSearch" 
+                                       placeholder="Search applications..."
+                                       oninput="filterApplications(this.value)">
+                                <i class="fas fa-times clear-icon" 
+                                   id="clearSearch" 
+                                   onclick="clearSearch()" 
+                                   style="display: none;"></i>
+                            </div>
+                        </div>
+                                                <div class="app-list" id="appList">
+                            <!-- Applications will be populated by JavaScript -->
+                        </div>
+                        
+                        <!-- Version Selector has been moved to bottom of page -->
+                    </div>
+                </div>
+
+                <!-- Step 3: Device Selection -->
+                <div id="step3Content" class="hidden">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-tags"></i>
+                            Select Device Tags
+                        </div>
+                        <div id="device-counter" class="device-counter">0 devices selected</div>
+                        <div class="tag-grid" id="tagGrid">
+                            <!-- Tags will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Version Selector Overlay -->
+            <div class="version-overlay" id="versionOverlay" onclick="hideVersionSelector()"></div>
+            
+            <!-- Version Selector Drawer -->
+            <div class="version-selector" id="versionSelector">
+                <div class="version-header">
+                    <span id="versionHeaderText">Select Version</span>
+                    <button class="version-close" onclick="hideVersionSelector()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="version-list" id="versionList">
+                    <!-- Versions will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button class="nav-btn secondary" id="prevBtn" onclick="previousStep()" style="display: none;">Previous</button>
+                <button class="nav-btn primary" id="nextBtn" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentStep = 1;
+        let selectedApp = null;
+        let selectedVersion = null;
+        let selectedTags = [];
+
+        // Toggle time controls
+        function toggleTimeControls(checkbox) {
+            const timeFrameControls = document.getElementById('timeFrameControls');
+            if (checkbox.checked) {
+                timeFrameControls.style.display = 'block';
+            } else {
+                timeFrameControls.style.display = 'none';
+            }
+            console.log('Idle time switch:', checkbox.checked);
+        }
+
+
+        // 过滤应用列表
+        function filterApplications(searchTerm) {
+            const clearIcon = document.getElementById('clearSearch');
+            
+            if (searchTerm.length > 0) {
+                clearIcon.style.display = 'block';
+            } else {
+                clearIcon.style.display = 'none';
+            }
+            
+            const filteredApps = applications.filter(app => 
+                app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                app.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            renderFilteredApplications(filteredApps);
+        }
+
+        // 清除搜索
+        function clearSearch() {
+            const searchInput = document.getElementById('appSearch');
+            const clearIcon = document.getElementById('clearSearch');
+            
+            searchInput.value = '';
+            clearIcon.style.display = 'none';
+            
+            renderApplications();
+        }
+
+        // 渲染过滤后的应用列表
+        function renderFilteredApplications(apps) {
+            const appList = document.getElementById('appList');
+            
+            if (apps.length === 0) {
+                appList.innerHTML = '<div class="no-results">No applications found</div>';
+                return;
+            }
+            
+            appList.innerHTML = apps.map(app => `
+                <div class="app-item" data-app-id="${app.id}">
+                    <div class="app-item-content">
+                        <input type="radio" name="selectedApp" value="${app.id}" class="app-radio" />
+                        <div class="app-icon">
+                            <i class="fas fa-${app.icon}"></i>
+                        </div>
+                        <div class="app-info">
+                            <div class="app-name">${app.name}</div>
+                            <div class="app-desc">${app.description}</div>
+                        </div>
+                    </div>
+                    <div class="selected-version" id="selectedVersion_${app.id}">
+                        <div class="selected-version-label">Selected Version</div>
+                        <div class="selected-version-info" id="versionInfo_${app.id}"></div>
+                        <div class="selected-version-details" id="versionDetails_${app.id}"></div>
+                    </div>
+                </div>
+            `).join('');
+            
+            bindAppEvents();
+        }
+
+        // 绑定应用事件
+        function bindAppEvents() {
+            setTimeout(() => {
+                document.querySelectorAll('.app-item-content').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const appId = this.closest('.app-item').getAttribute('data-app-id');
+                        selectApp(appId);
+                    });
+                });
+            }, 50);
+        }
+
+        function initializeSwitches() {
+            // No special initialization needed
+        }
+
+        // Application data with versions
+        const applications = [
+            {
+                id: 'wiseviewer',
+                name: 'WiseViewer',
+                description: 'Remote desktop and monitoring',
+                icon: 'desktop',
+                versions: [
+                    { id: '3.2.1', number: '3.2.1', date: '2024-01-15', size: '25.6 MB' },
+                    { id: '3.2.0', number: '3.2.0', date: '2024-01-08', size: '25.4 MB' },
+                    { id: '3.1.9', number: '3.1.9', date: '2023-12-20', size: '25.1 MB' },
+                    { id: '3.1.8', number: '3.1.8', date: '2023-12-10', size: '24.9 MB' }
+                ]
+            },
+            {
+                id: 'office',
+                name: 'WPS Office',
+                description: 'Document editing suite',
+                icon: 'file-alt',
+                versions: [
+                    { id: '11.1.0', number: '11.1.0', date: '2024-01-20', size: '128.5 MB' },
+                    { id: '11.0.9', number: '11.0.9', date: '2024-01-10', size: '127.8 MB' },
+                    { id: '11.0.8', number: '11.0.8', date: '2023-12-25', size: '127.2 MB' },
+                    { id: '11.0.7', number: '11.0.7', date: '2023-12-15', size: '126.9 MB' },
+                    { id: '11.0.6', number: '11.0.6', date: '2023-12-01', size: '126.5 MB' }
+                ]
+            },
+            {
+                id: 'browser',
+                name: 'Chrome Browser',
+                description: 'Web browser application',
+                icon: 'globe',
+                versions: [
+                    { id: '120.0', number: '120.0.6099.129', date: '2024-01-18', size: '95.2 MB' },
+                    { id: '119.0', number: '119.0.6045.199', date: '2024-01-05', size: '94.8 MB' },
+                    { id: '118.0', number: '118.0.5993.117', date: '2023-12-20', size: '94.1 MB' },
+                    { id: '117.0', number: '117.0.5938.149', date: '2023-12-05', size: '93.7 MB' }
+                ]
+            },
+            {
+                id: 'security',
+                name: 'Antivirus Pro',
+                description: 'System security protection',
+                icon: 'shield-alt',
+                versions: [
+                    { id: '2024.1', number: '2024.1.2', date: '2024-01-22', size: '156.8 MB' },
+                    { id: '2024.0', number: '2024.0.9', date: '2024-01-12', size: '155.9 MB' },
+                    { id: '2023.12', number: '2023.12.5', date: '2023-12-28', size: '154.7 MB' },
+                    { id: '2023.11', number: '2023.11.8', date: '2023-12-08', size: '153.2 MB' }
+                ]
+            },
+            {
+                id: 'media',
+                name: 'Media Player',
+                description: 'Video and audio player',
+                icon: 'play-circle',
+                versions: [
+                    { id: '5.1.2', number: '5.1.2', date: '2024-01-16', size: '78.4 MB' },
+                    { id: '5.1.1', number: '5.1.1', date: '2024-01-03', size: '78.1 MB' },
+                    { id: '5.1.0', number: '5.1.0', date: '2023-12-18', size: '77.9 MB' },
+                    { id: '5.0.9', number: '5.0.9', date: '2023-12-02', size: '77.5 MB' },
+                    { id: '5.0.8', number: '5.0.8', date: '2023-11-20', size: '77.1 MB' }
+                ]
+            }
+        ];
+
+        // Device tags data
+        const deviceTags = [
+            { id: 'office_floor1', name: 'Office Floor 1', count: 24 },
+            { id: 'office_floor2', name: 'Office Floor 2', count: 18 },
+            { id: 'conference_rooms', name: 'Conference Rooms', count: 8 },
+            { id: 'lobby_displays', name: 'Lobby Displays', count: 6 },
+            { id: 'training_center', name: 'Training Center', count: 12 },
+            { id: 'cafeteria', name: 'Cafeteria', count: 4 }
+        ];
+
+        // Initialize page
+        function initializePage() {
+            generateTaskName();
+            renderApplications();
+            renderDeviceTags();
+            updateProgress();
+            updateNavigation();
+        }
+
+        // Generate auto task name
+        function generateTaskName() {
+            const today = new Date();
+            const dateStr = today.getFullYear().toString() + 
+                          (today.getMonth() + 1).toString().padStart(2, '0') + 
+                          today.getDate().toString().padStart(2, '0');
+            
+            let counter = parseInt(localStorage.getItem(`taskCounter_${dateStr}`) || '0') + 1;
+            localStorage.setItem(`taskCounter_${dateStr}`, counter.toString());
+            
+            const taskName = dateStr + counter.toString().padStart(5, '0');
+            document.getElementById('taskName').value = taskName;
+        }
+
+        // Render applications
+        function renderApplications() {
+            const appList = document.getElementById("appList");
+            if (!appList) {
+                console.error("appList element not found!");
+                return;
+            }
+            
+            try {
+                appList.innerHTML = applications.map(app => `
+                    <div class="app-item" data-app-id="${app.id}">
+                        <div class="app-item-content">
+                            <input type="radio" name="selectedApp" value="${app.id}" class="app-radio" />
+                            <div class="app-icon">
+                                <i class="fas fa-${app.icon}"></i>
+                            </div>
+                            <div class="app-info">
+                                <div class="app-name">${app.name}</div>
+                                <div class="app-desc">${app.description}</div>
+                            </div>
+                        </div>
+                        <div class="selected-version" id="selectedVersion_${app.id}">
+                            <div class="selected-version-label">Selected Version</div>
+                            <div class="selected-version-info" id="versionInfo_${app.id}"></div>
+                            <div class="selected-version-details" id="versionDetails_${app.id}"></div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add click event listeners properly
+                setTimeout(() => {
+                    document.querySelectorAll(".app-item-content").forEach((item) => {
+                        item.addEventListener("click", function() {
+                            const appId = this.closest('.app-item').getAttribute("data-app-id");
+                            selectApp(appId);
+                        });
+                    });
+                }, 100);
+
+            } catch (error) {
+                console.error("Error in renderApplications:", error);
+            }
+        }
+
+        // Select application and show version selector
+        function selectApp(appId) {
+            // Update radio selection
+            console.log("selectApp called with:", appId);
+            const radio = document.querySelector(`input[value="${appId}"]`);
+            radio.checked = true;
+            
+            // Update visual selection
+            document.querySelectorAll('.app-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            radio.closest('.app-item').classList.add('selected');
+            
+            selectedApp = applications.find(app => app.id === appId);
+            selectedVersion = null; // Reset version selection
+            
+            // Hide all version displays when selecting new app
+            document.querySelectorAll('.selected-version').forEach(item => {
+                item.classList.remove('show');
+            });
+            // Show version selector with animation
+            showVersionSelector(selectedApp);
+            
+            // Update navigation
+            updateNavigation();
+        }
+
+        // Show version selector with animation
+        function showVersionSelector(app) {
+            const versionSelector = document.getElementById('versionSelector');
+            console.log("showVersionSelector called with:", app);
+            const versionHeader = document.getElementById('versionHeaderText');
+            const versionList = document.getElementById('versionList');
+            
+            // Update header
+            versionHeader.textContent = `Select ${app.name} Version`;
+            
+            // Render versions
+            versionList.innerHTML = app.versions.map(version => `
+                <div class="version-item" data-version-id="${version.id}">
+                    <input type="radio" name="selectedVersion" value="${version.id}" class="version-radio" />
+                    <div class="version-info">
+                        <div class="version-number">${version.number}</div>
+                        <div class="version-date">${version.date} • ${version.size}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add event listeners for version items
+            setTimeout(() => {
+                document.querySelectorAll('.version-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const versionId = this.getAttribute('data-version-id');
+                        selectVersion(versionId);
+                    });
+                });
+            }, 50);
+            
+            // Show selector with animation
+            versionSelector.classList.add('show');
+            versionSelector.style.visibility = 'visible';
+            versionSelector.style.pointerEvents = 'auto';
+            
+            // Show overlay
+            const versionOverlay = document.getElementById('versionOverlay');
+            versionOverlay.classList.add('show');
+            
+            // Ensure navigation buttons are accessible
+            // Navigation already has high z-index; no extra class needed
+        }
+
+        // Select version
+        function selectVersion(versionId) {
+            const radio = document.querySelector(`input[name="selectedVersion"][value="${versionId}"]`);
+            radio.checked = true;
+            
+            // Update visual selection
+            document.querySelectorAll('.version-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            radio.closest('.version-item').classList.add('selected');
+            
+            selectedVersion = selectedApp.versions.find(v => v.id === versionId);
+            
+            // Show selected version info
+            showSelectedVersionInfo();
+            
+            // Auto close drawer after selection
+            setTimeout(() => {
+                hideVersionSelector();
+            }, 300);
+            
+            // Update navigation
+            updateNavigation();
+        }
+
+        // Render device tags
+        function renderDeviceTags() {
+            const tagGrid = document.getElementById('tagGrid');
+            tagGrid.innerHTML = deviceTags.map(tag => `
+                <div class="tag-item" data-tag-id="${tag.id}">
+                    <input type="checkbox" value="${tag.id}" class="tag-checkbox" />
+                    <div class="tag-info">
+                        <div class="tag-name">${tag.name}</div>
+                        <div class="device-count">${tag.count} devices</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add event listeners for tag items
+            setTimeout(() => {
+                document.querySelectorAll('.tag-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const tagId = this.getAttribute('data-tag-id');
+                        toggleTag(tagId);
+                    });
+                });
+            }, 50);
+        }
+
+        // Toggle device tag
+        function toggleTag(tagId) {
+            const checkbox = document.querySelector(`input[value="${tagId}"]`);
+            const tagItem = checkbox.closest('.tag-item');
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                tagItem.classList.add('selected');
+                selectedTags.push(tagId);
+            } else {
+                tagItem.classList.remove('selected');
+                selectedTags = selectedTags.filter(id => id !== tagId);
+            }
+            
+            updateSummary();
+            updateNavigation();
+        }
+
+        // Toggle idle switch and show/hide time frame
+        function toggleIdleTimeControls() {
+            console.log('toggleIdleTimeControls called');
+            const toggle = document.getElementById('idleTimeSwitch');
+            const timeFrameControls = document.getElementById('timeFrameControls');
+            
+            console.log('Toggle checked:', toggle.checked);
+            console.log('Time frame controls found:', !!timeFrameControls);
+            
+            if (toggle.checked) {
+                console.log('Showing time frame controls');
+                timeFrameControls.style.display = 'block';
+                timeFrameControls.classList.add('show');
+            } else {
+                console.log('Hiding time frame controls');
+                timeFrameControls.classList.remove('show');
+                setTimeout(() => {
+                    timeFrameControls.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Toggle switch (for WiFi only)
+        function toggleSwitch(switchId) {
+            const toggle = document.getElementById(switchId);
+            toggle.classList.toggle('active');
+        }
+
+        // Update progress indicator
+        function updateProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const steps = [
+                { circle: 'step1Circle', label: 'step1Label' },
+                { circle: 'step2Circle', label: 'step2Label' },
+                { circle: 'step3Circle', label: 'step3Label' }
+            ];
+            
+            // Reset all steps
+            steps.forEach((step, index) => {
+                const circle = document.getElementById(step.circle);
+                const label = document.getElementById(step.label);
+                
+                circle.classList.remove('active', 'completed');
+                label.classList.remove('active');
+                
+                if (index + 1 < currentStep) {
+                    circle.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    circle.classList.add('active');
+                    label.classList.add('active');
+                }
+            });
+            
+            // Update progress line
+            const progressPercent = ((currentStep - 1) / 2) * 100;
+            progressFill.style.width = progressPercent + '%';
+        }
+
+        // Show/hide content based on current step
+        function showStepContent() {
+            document.getElementById('step1Content').classList.toggle('hidden', currentStep !== 1);
+            document.getElementById('step2Content').classList.toggle('hidden', currentStep !== 2);
+            document.getElementById('step3Content').classList.toggle('hidden', currentStep !== 3);
+        }
+
+        // Update navigation buttons
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // Previous button
+            prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
+            
+            // Next button
+            let canProceed = false;
+            
+            if (currentStep === 1) {
+                canProceed = true; // Always can proceed from step 1
+                nextBtn.textContent = 'Next';
+            } else if (currentStep === 2) {
+                canProceed = selectedApp; // Only need app selected, version is optional
+                nextBtn.textContent = 'Next';
+            } else if (currentStep === 3) {
+                canProceed = selectedTags.length > 0;
+                nextBtn.textContent = 'Create Task';
+            }
+            
+            nextBtn.disabled = !canProceed;
+        }
+
+        // Next step
+        function nextStep() {
+            console.log('nextStep called, currentStep:', currentStep);
+            
+            if (currentStep === 3) {
+                // Create task
+                createTask();
+                return;
+            }
+            
+            if (currentStep < 3) {
+                currentStep++;
+                console.log('Moving to step:', currentStep);
+                updateProgress();
+                showStepContent();
+                updateNavigation();
+                
+                if (currentStep === 3) {
+                    updateSummary();
+                }
+            }
+        }
+
+        // Previous step
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateProgress();
+                showStepContent();
+                updateNavigation();
+            }
+        }
+
+        // Update summary
+        function updateSummary() {
+            const totalDevices = selectedTags.reduce((sum, tagId) => {
+                const tag = deviceTags.find(t => t.id === tagId);
+                return sum + (tag ? tag.count : 0);
+            }, 0);
+            
+            const counter = document.getElementById('device-counter');
+            if(counter) {
+                counter.textContent = `${totalDevices} devices selected`;
+            }
+        }
+
+        // Create task
+        function createTask() {
+            alert('Task created successfully!');
+            // Here you would typically send the data to the server
+            goBack();
+        }
+
+        // Go back
+        function goBack() {
+            window.location.href = '02_homepage.html';
+        }
+
+        // Hide version selector
+        function hideVersionSelector() {
+            const versionSelector = document.getElementById('versionSelector');
+            const versionOverlay = document.getElementById('versionOverlay');
+            versionSelector.classList.remove('show');
+            versionOverlay.classList.remove('show');
+            
+            // No overlay-active class manipulation needed
+        }
+
+        // Show selected version info
+        function showSelectedVersionInfo() {
+            if (!selectedApp || !selectedVersion) return;
+            
+            // Hide all version displays first
+            document.querySelectorAll('.selected-version').forEach(item => {
+                item.classList.remove('show');
+            });
+            
+            // Show selected version for current app
+            const versionDisplay = document.getElementById(`selectedVersion_${selectedApp.id}`);
+            const versionInfo = document.getElementById(`versionInfo_${selectedApp.id}`);
+            const versionDetails = document.getElementById(`versionDetails_${selectedApp.id}`);
+            
+            if (versionDisplay && versionInfo && versionDetails) {
+                versionInfo.textContent = selectedVersion.number;
+                versionDetails.textContent = `${selectedVersion.date} • ${selectedVersion.size}`;
+                versionDisplay.classList.add('show');
+            }
+        }
+
+        // Initialize switch event listeners
+
+
+
+
+        // Initialize page when loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            initializeSwitches();
+        });
+    </script>
+</body>
+</html> 
