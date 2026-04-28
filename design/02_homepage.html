@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiseCloud Mobile - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .primary-color { color: #3472fe; }
+        .primary-bg { background-color: #3472fe; }
+        .primary-border { border-color: #3472fe; }
+        .gradient-bg { background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%); }
+        
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f8fafc;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .content-area {
+            height: calc(100% - 44px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        
+        .search-container {
+            background: white;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .search-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 8px 40px 8px 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .search-icon {
+            position: absolute;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 16px;
+        }
+        .qr-icon {
+            position: absolute;
+            right: 56px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3472fe;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .header-section {
+            margin-bottom: 24px;
+        }
+        .welcome-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .subtitle-text {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .device-overview-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .overview-item {
+            text-align: center;
+            padding: 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .overview-item.total {
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            color: white;
+        }
+        .overview-item.online {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+        .overview-item.offline {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .overview-item.activated {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+        .overview-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .overview-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .overview-detail {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* Task Management Entry Card */
+        .task-entry-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .task-entry-card:active { transform: scale(0.98); }
+        .task-entry-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .task-entry-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .task-entry-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .task-entry-sub {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        
+        .activity-chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        .chart-container {
+            height: 150px;
+            margin-top: 16px;
+            position: relative;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            padding: 0 8px;
+        }
+        .chart-bar {
+            width: 20px;
+            background: linear-gradient(180deg, #3472fe 0%, #4f7cff 100%);
+            border-radius: 10px 10px 0 0;
+            margin: 0 2px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .chart-bar::before {
+            content: attr(data-value);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .chart-bar::after {
+            content: attr(data-day);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .see-all {
+            font-size: 12px;
+            color: #3472fe;
+            cursor: pointer;
+        }
+        
+        /* 浮动批量任务按钮 */
+        .floating-batch-btn {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            border: none;
+            border-radius: 28px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(52, 114, 254, 0.4);
+            transition: all 0.3s ease;
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .floating-batch-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 32px rgba(52, 114, 254, 0.5);
+        }
+        .floating-batch-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+        
+        /* 添加轻微的脉冲动画 */
+        @keyframes pulse-subtle {
+            0% {
+                box-shadow: 0 8px 24px rgba(52, 114, 254, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 24px rgba(52, 114, 254, 0.6);
+            }
+            100% {
+                box-shadow: 0 8px 24px rgba(52, 114, 254, 0.4);
+            }
+        }
+        
+        .floating-batch-btn {
+            animation: pulse-subtle 3s ease-in-out infinite;
+        }
+        
+        /* 批量任务按钮图标样式 */
+        .batch-btn-icon {
+            width: 24px;
+            height: 24px;
+            filter: brightness(0) invert(1); /* 将图标变为白色 */
+            transition: all 0.3s ease;
+        }
+        
+        /* 批量任务标签 */
+        .batch-btn-label {
+            position: absolute;
+            bottom: 95px;
+            right: 84px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            z-index: 997;
+        }
+        .floating-batch-btn:hover + .batch-btn-label {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+        
+        /* Batch Task菜单 */
+        .batch-menu {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px 20px 32px 32px;
+            padding: 24px 20px 40px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1000;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .batch-menu.show {
+            transform: translateY(0);
+        }
+        .batch-menu-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .batch-menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .batch-menu-subtitle {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .batch-menu-handle {
+            width: 32px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+        .batch-menu-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .batch-option {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .batch-option:hover {
+            background: #f1f5f9;
+            border-color: #3472fe;
+            transform: translateX(4px);
+        }
+        .batch-option-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #3472fe;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .batch-option-content {
+            flex: 1;
+        }
+        .batch-option-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+        .batch-option-desc {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.3;
+        }
+        .batch-option-arrow {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+        
+        /* 遮罩层 */
+        .batch-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+            border-radius: 32px;
+        }
+        .batch-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .page-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+        .search-result-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .search-result-item:hover {
+            background: #f8fafc;
+        }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        .result-sn {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+        }
+        .result-status {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .status-online {
+            color: #22c55e;
+        }
+        .status-offline {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <h1 class="page-title">Dashboard</h1>
+    <div class="phone-container">
+        <div class="screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-signal text-sm"></i>
+                    <i class="fas fa-wifi text-sm"></i>
+                    <i class="fas fa-battery-three-quarters text-sm"></i>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Header Section -->
+                <div class="header-section">
+                    <div class="welcome-text">Hi, {$UseerName}</div>
+                    <div class="subtitle-text">Welcome to WiseCloud mobile dashboard.</div>
+                </div>
+                
+                <!-- Task Management Entry Card -->
+                <div class="task-entry-card" onclick="window.location.href='07_task_management.html'">
+                    <div class="task-entry-left">
+                        <div class="task-entry-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div>
+                            <div class="task-entry-text">Task Management</div>
+                            <div class="task-entry-sub">View all batch tasks</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:#94a3b8; font-size:14px;"></i>
+                </div>
+
+                <!-- Search Container -->
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Enter SN or last digits to search." 
+                           oninput="handleSearch(this.value)" onfocus="showSearchResults()" onblur="hideSearchResults()">
+
+                    <i class="fas fa-search search-icon"></i>
+                    
+                    <!-- Search Results -->
+                    <div class="search-results" id="searchResults">
+                        <div class="search-result-item" onclick="openDeviceDetail('WC001234567')">
+                            <div class="result-sn">WC001234567</div>
+                            <div class="result-status status-online">Online • Model: WP-800</div>
+                        </div>
+                        <div class="search-result-item" onclick="openDeviceDetail('WC001234568')">
+                            <div class="result-sn">WC001234568</div>
+                            <div class="result-status status-offline">Offline • Model: WP-800</div>
+                        </div>
+                        <div class="search-result-item" onclick="openDeviceDetail('WC001234569')">
+                            <div class="result-sn">WC001234569</div>
+                            <div class="result-status status-online">Online • Model: WP-900</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Device Overview -->
+                <div class="section-title">
+                    Device Overview
+                    
+                </div>
+                <div class="device-overview-card">
+                    <div class="overview-grid">
+                        <div class="overview-item total">
+                            <div class="overview-number">1,248</div>
+                            <div class="overview-label">Total Devices</div>
+                        </div>
+                        <div class="overview-item online">
+                            <div class="overview-number">1,156</div>
+                            <div class="overview-label">Online</div>
+                            <div class="overview-detail">92.6% online rate</div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Last 7 Days Activity Chart -->
+                <div class="section-title">
+                    Last 7 Days Activity
+                </div>
+                <div class="activity-chart-card">
+                    <div class="chart-container">
+                        <div class="chart-bar" style="height: 85%;" data-value="1,156" data-day="Mon"></div>
+                        <div class="chart-bar" style="height: 92%;" data-value="1,248" data-day="Tue"></div>
+                        <div class="chart-bar" style="height: 78%;" data-value="1,089" data-day="Wed"></div>
+                        <div class="chart-bar" style="height: 88%;" data-value="1,203" data-day="Thu"></div>
+                        <div class="chart-bar" style="height: 95%;" data-value="1,289" data-day="Fri"></div>
+                        <div class="chart-bar" style="height: 72%;" data-value="1,032" data-day="Sat"></div>
+                        <div class="chart-bar" style="height: 68%;" data-value="987" data-day="Sun"></div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Floating Batch Task Button -->
+            <button class="floating-batch-btn" onclick="openBatchMenu()">
+                <img src="images/new_create.png" alt="Batch Task" class="batch-btn-icon">
+            </button>
+            <div class="batch-btn-label">Batch Task</div>
+            
+            <!-- Batch Task Menu Overlay -->
+            <div class="batch-overlay" id="batchOverlay" onclick="closeBatchMenu()"></div>
+            
+            <!-- Batch Task Menu -->
+            <div class="batch-menu" id="batchMenu">
+                <div class="batch-menu-handle"></div>
+                <div class="batch-menu-header">
+                    <div class="batch-menu-title">Batch Operations</div>
+                    <div class="batch-menu-subtitle">Select an operation to perform on multiple devices</div>
+                </div>
+                <div class="batch-menu-options">
+                    <div class="batch-option" onclick="selectBatchOperation('app-install')">
+                        <div class="batch-option-icon">
+                            <i class="fas fa-download-alt"></i>
+                        </div>
+                        <div class="batch-option-content">
+                            <div class="batch-option-title">App Install</div>
+                            <div class="batch-option-desc">Install applications to selected devices</div>
+                        </div>
+                        <div class="batch-option-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    <div class="batch-option" onclick="selectBatchOperation('ota')">
+                        <div class="batch-option-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="batch-option-content">
+                            <div class="batch-option-title">OTA Update</div>
+                            <div class="batch-option-desc">Batch firmware update for multiple devices</div>
+                        </div>
+                        <div class="batch-option-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="batch-option" onclick="selectBatchOperation('app-uninstall')">
+                        <div class="batch-option-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <div class="batch-option-content">
+                            <div class="batch-option-title">App Uninstall</div>
+                            <div class="batch-option-desc">Remove applications from devices</div>
+                        </div>
+                        <div class="batch-option-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    <div class="batch-option" onclick="selectBatchOperation('push-instruction')">
+                        <div class="batch-option-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <div class="batch-option-content">
+                            <div class="batch-option-title">Push Instruction</div>
+                            <div class="batch-option-desc">Send commands to multiple devices</div>
+                        </div>
+                        <div class="batch-option-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    <div class="batch-option" onclick="selectBatchOperation('wiseos-setting')">
+                        <div class="batch-option-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="batch-option-content">
+                            <div class="batch-option-title">WiseOS Setting</div>
+                            <div class="batch-option-desc">Configure system settings</div>
+                        </div>
+                        <div class="batch-option-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script>
+        let searchTimeout;
+        
+        function handleSearch(value) {
+            clearTimeout(searchTimeout);
+            const searchResults = document.getElementById('searchResults');
+            
+            if (value.trim() === '') {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            // 模拟搜索延迟
+            searchTimeout = setTimeout(() => {
+                // 这里可以添加实际的搜索API调用
+                console.log('Searching for:', value);
+                searchResults.style.display = 'block';
+            }, 300);
+        }
+        
+        function showSearchResults() {
+            const searchInput = event.target;
+            const searchResults = document.getElementById('searchResults');
+            
+            if (searchInput.value.trim() !== '') {
+                searchResults.style.display = 'block';
+            }
+        }
+        
+        function hideSearchResults() {
+            // 延迟隐藏，允许点击搜索结果
+            setTimeout(() => {
+                const searchResults = document.getElementById('searchResults');
+                searchResults.style.display = 'none';
+            }, 200);
+        }
+        
+        function openQRScanner() {
+            alert('Opening QR Code Scanner...');
+            // 这里可以集成QR码扫描功能
+        }
+        
+        function openDeviceDetail(sn) {
+            // 在当前页面打开设备详情页
+            window.location.href = '03_device_detail.html';
+        }
+        
+        // Batch Task 功能函数
+        function openBatchMenu() {
+            const overlay = document.getElementById('batchOverlay');
+            const menu = document.getElementById('batchMenu');
+            
+            overlay.classList.add('show');
+            menu.classList.add('show');
+            
+            // 防止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeBatchMenu() {
+            const overlay = document.getElementById('batchOverlay');
+            const menu = document.getElementById('batchMenu');
+            
+            overlay.classList.remove('show');
+            menu.classList.remove('show');
+            
+            // 恢复背景滚动
+            document.body.style.overflow = '';
+        }
+        
+        function selectBatchOperation(operation) {
+            closeBatchMenu();
+            
+            switch(operation) {
+                case 'ota':
+                    alert('Opening Batch OTA Update...\n\nFeatures:\n• Select multiple devices\n• Choose firmware version\n• Schedule update time\n• Monitor progress');
+                    break;
+                case 'app-install':
+                    window.location.href = '06_batch_app_install.html';
+                    break;
+                case 'app-uninstall':
+                    alert('Opening App Uninstall...\n\nFeatures:\n• Select installed apps\n• Choose target devices\n• Batch uninstall process\n• Cleanup verification');
+                    break;
+                case 'push-instruction':
+                    alert('Opening Push Instruction...\n\nFeatures:\n• Send commands to devices\n• Remote restart/shutdown\n• Custom instruction execution\n• Real-time status feedback');
+                    break;
+                case 'wiseos-setting':
+                    alert('Opening WiseOS Setting...\n\nFeatures:\n• System configuration\n• Network settings\n• Security policies\n• Display preferences');
+                    break;
+                case 'task-management':
+                    window.location.href = '07_task_management.html';
+                    break;
+            }
+        }
+        
+        // 添加键盘事件监听，ESC键关闭菜单
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeBatchMenu();
+            }
+        });
+        
+        // 模拟下拉刷新
+        let startY = 0;
+        let isPulling = false;
+        
+        document.querySelector('.content-area').addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isPulling = true;
+        });
+        
+        document.querySelector('.content-area').addEventListener('touchmove', (e) => {
+            if (!isPulling) return;
+            
+            const currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+            
+            if (diff > 50 && document.querySelector('.content-area').scrollTop === 0) {
+                // 触发刷新
+                console.log('Refreshing data...');
+            }
+        });
+        
+        document.querySelector('.content-area').addEventListener('touchend', () => {
+            isPulling = false;
+        });
+    </script>
+</body>
+</html>

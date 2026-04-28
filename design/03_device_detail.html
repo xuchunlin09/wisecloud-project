@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiseCloud Mobile - Device Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .primary-color { color: #3472fe; }
+        .primary-bg { background-color: #3472fe; }
+        .primary-border { border-color: #3472fe; }
+        .gradient-bg { background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%); }
+        
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f8fafc;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+            contain: layout style paint;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .content-area {
+            height: calc(100% - 44px);
+            padding: 0;
+            overflow-y: hidden;
+            position: relative;
+        }
+
+        
+        .header-section {
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            padding: 20px;
+            color: white;
+            position: fixed;
+            top: 44px;
+            left: 8px;
+            right: 8px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 32px 32px 0 0;
+        }
+        .header-nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            height: 40px;
+            color: white;
+        }
+        .back-button {
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            height: 40px;
+            margin-right: 8px;
+        }
+        .header-title {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            height: 40px;
+        }
+        .device-info-container {
+            display: flex;
+            align-items: center;
+            margin-top: 40px;
+            width: 100%;
+            position: relative;
+        }
+        .device-title {
+            text-align: left;
+            flex: 1;
+            padding-right: 88px;
+        }
+        .device-sn {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .device-model {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.2);
+        }
+        .device-image {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow: hidden;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .device-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .status-online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #dcfce7;
+        }
+        .status-offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fecaca;
+        }
+        
+        .info-section {
+            padding: 20px;
+            height: calc(100vh - 44px - 120px);
+            overflow-y: auto;
+            margin-top: 168px;
+            position: relative;
+        }
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .info-title i {
+            color: #3472fe;
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .info-value {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        .copy-button {
+            margin-left: 8px;
+            color: #3472fe;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .battery-bar {
+            width: 60px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .battery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .battery-fill.low {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+        .battery-fill.medium {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+
+        
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .app-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .app-name {
+            font-size: 10px;
+            color: #64748b;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        /* View All Icon */
+        .view-all-icon {
+            margin-left: auto;
+            color: #3472fe;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .view-all-icon:hover {
+            background: rgba(52, 114, 254, 0.1);
+        }
+        
+        /* Apps Drawer */
+        .apps-drawer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px 20px 32px 32px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            max-height: 70%;
+            overflow: hidden;
+            box-shadow: 0 -8px 24px rgba(0,0,0,0.15);
+        }
+        .apps-drawer.show {
+            transform: translateY(0);
+        }
+        .drawer-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border-radius: 32px;
+            pointer-events: none;
+        }
+        .drawer-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .drawer-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+        .drawer-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .drawer-close {
+            color: #64748b;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .drawer-close:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        .drawer-content {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(70% - 80px);
+        }
+        .app-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .app-list-item:last-child {
+            border-bottom: none;
+        }
+        .app-list-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .app-list-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .app-list-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+        .app-list-package {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 2px;
+            word-break: break-all;
+        }
+        .app-list-version {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        /* Running Status Styles */
+        .status-tabs {
+            display: flex;
+            margin-bottom: 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .status-tab {
+            flex: 1;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .status-tab.active {
+            background: white;
+            color: #3472fe;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            height: 120px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .chart-bars {
+            display: flex;
+            align-items: end;
+            height: 80px;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .chart-bar {
+            flex: 1;
+            position: relative;
+            min-height: 20px;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+            background: linear-gradient(to top, #3472fe 0%, #4f7cff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 2px;
+        }
+        .chart-bar-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: #64748b;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .chart-bar-content {
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .online-count {
+            display: block;
+            margin-bottom: 1px;
+        }
+        .offline-count {
+            display: block;
+            color: #fecaca;
+            font-size: 9px;
+        }
+        .chart-bar-total {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            font-size: 11px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .legend-color {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+        }
+        .legend-color.online {
+            background: #3472fe;
+        }
+        .legend-color.offline {
+            background: #ef4444;
+        }
+        .status-summary {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .summary-item {
+            text-align: center;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            min-width: 80px;
+        }
+        .summary-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+        .summary-label {
+            font-size: 10px;
+            color: #64748b;
+        }
+        .summary-item.online .summary-value {
+            color: #22c55e;
+        }
+        .summary-item.offline .summary-value {
+            color: #ef4444;
+        }
+        
+        .remote-button {
+            position: fixed;
+            bottom: 28px;
+            right: 23px;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(52, 114, 254, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .remote-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(52, 114, 254, 0.4);
+        }
+        .remote-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* 远程操作气泡弹窗样式 */
+        .remote-menu {
+            position: fixed;
+            bottom: 90px;
+            right: 23px;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-height: calc(100% - 200px);
+            overflow-y: auto;
+        }
+        .remote-menu.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .remote-menu::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 26px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid white;
+            z-index: 1001;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+        }
+        .menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+            border-radius: 32px;
+            pointer-events: none;
+        }
+        .menu-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .menu-header {
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .menu-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .menu-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+        .menu-close:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .menu-content {
+            padding: 12px 16px 16px;
+        }
+        .menu-section {
+            margin-bottom: 8px;
+        }
+        .menu-section:last-child {
+            margin-bottom: 0;
+        }
+        .section-title {
+            display: none;
+        }
+        .operation-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        .operation-item:hover {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+        .operation-item.safe {
+        }
+        .operation-item.warning {
+        }
+        .operation-item.danger {
+        }
+        .operation-item.premium {
+        }
+        .operation-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 14px;
+            color: white;
+        }
+        .operation-icon.safe {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+        .operation-icon.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        .operation-icon.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        .operation-icon.premium {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+        .operation-details {
+            flex: 1;
+        }
+        .operation-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+        .operation-desc {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.3;
+        }
+        .operation-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .badge-warning {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+        .badge-premium {
+            background: rgba(139, 92, 246, 0.1);
+            color: #7c3aed;
+        }
+        
+        /* Device Location Styles */
+        .device-location-section {
+            margin-top: 8px;
+        }
+        
+        .device-map-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        
+        .device-map {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .device-map.expanded {
+            height: 300px;
+            transition: height 0.3s ease;
+        }
+        
+        .location-details {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        
+        .location-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .location-info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .location-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .location-value {
+            font-size: 12px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        /* Leaflet map custom styles */
+        .leaflet-container {
+            border-radius: 12px;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        
+        .leaflet-popup-content {
+            margin: 8px 12px;
+            font-size: 12px;
+        }
+        
+        .device-marker-popup {
+            text-align: center;
+        }
+        
+        .device-marker-popup .device-name {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .device-marker-popup .device-status {
+            font-size: 11px;
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .device-marker-popup .device-coords {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        /* 确认对话框样式 */
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px;
+            max-width: 300px;
+            text-align: center;
+        }
+        .modal-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            font-size: 24px;
+            margin: 0 auto 16px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .modal-description {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .modal-button.cancel {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .modal-button.confirm {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .page-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+
+        
+        /* 确认对话框样式 */
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px;
+            max-width: 300px;
+            text-align: center;
+        }
+        .modal-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ef4444;
+            font-size: 24px;
+            margin: 0 auto 16px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .modal-description {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .modal-button.cancel {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .modal-button.confirm {
+            background: #ef4444;
+            color: white;
+        }    
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <h1 class="page-title">Device Detail</h1>
+    <div class="phone-container">
+        <div class="screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-signal text-sm"></i>
+                    <i class="fas fa-wifi text-sm"></i>
+                    <i class="fas fa-battery-three-quarters text-sm"></i>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Header Section -->
+                <div class="header-section">
+                    <div class="header-nav">
+                        <i class="fas fa-arrow-left back-button" onclick="goBack()"></i>
+                        <span class="header-title">Device Info</span>
+                    </div>
+                    <div class="device-info-container">
+                        <div class="device-title">
+                            <div class="device-sn">WC001234567</div>
+                            <div class="device-model">WisePOS WP-800</div>
+                            <span class="status-badge status-online">
+                                <i class="fas fa-circle" style="font-size: 8px; margin-right: 4px;"></i>
+                                Online
+                            </span>
+                        </div>
+                        <div class="device-image">
+                            <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=200&h=200&fit=crop&crop=center" alt="Wiseasy P5 POS Terminal" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-cash-register\' style=\'color: white; font-size: 32px;\'></i>'">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Device Information -->
+                <div class="info-section">
+                    <!-- Basic Information -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <i class="fas fa-info-circle"></i>
+                            Basic Information
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Android Version</span>
+                            <span class="info-value">11.0</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">ROM Version</span>
+                            <span class="info-value">v3.2.1</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">SP Version</span>
+                            <span class="info-value">v2.8.5</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">DMS Version</span>
+                            <span class="info-value">v1.4.2</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">OEM Version</span>
+                            <span class="info-value">v4.1.0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Device Status -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <i class="fas fa-heartbeat"></i>
+                            Device Status
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Battery Level</span>
+                            <span class="info-value">
+                                85%
+                                <div class="battery-bar" style="margin-left: 8px;">
+                                    <div class="battery-fill" style="width: 85%;"></div>
+                                </div>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Network Signal</span>
+                            <span class="info-value">
+                                4G • Strong
+                                <i class="fas fa-signal" style="margin-left: 4px; color: #22c55e;"></i>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Last Online</span>
+                            <span class="info-value">2 minutes ago</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Installed Applications -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <i class="fas fa-th-large"></i>
+                            Installed Applications (12)
+                            <div class="view-all-icon" onclick="showAppsDrawer()">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                        <div class="apps-grid">
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-credit-card"></i>
+                                </div>
+                                <div class="app-name">Payment</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="app-name">Receipt</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="app-name">Settings</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="app-name">Security</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-wifi"></i>
+                                </div>
+                                <div class="app-name">Network</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="app-name">Analytics</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <div class="app-name">Camera</div>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="app-name">Files</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Running Status -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <i class="fas fa-chart-line"></i>
+                            Running Status
+                        </div>
+                        
+                        <!-- Time Period Tabs -->
+                        <div class="status-tabs">
+                            <div class="status-tab active" onclick="switchStatusPeriod('today', this)">Today</div>
+                            <div class="status-tab" onclick="switchStatusPeriod('week', this)">7 Days</div>
+                            <div class="status-tab" onclick="switchStatusPeriod('month', this)">30 Days</div>
+                        </div>
+                        
+                        <!-- Chart Container -->
+                        <div class="chart-container">
+                            <div class="chart-bars" id="statusChart">
+                                <!-- Today's data (6 time periods) -->
+                                <div class="chart-bar" style="height: 70%;" data-period="today">
+                                    <div class="chart-bar-label">0-4h</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">3↑</span>
+                                        <span class="offline-count">2↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">5</div>
+                                </div>
+                                <div class="chart-bar" style="height: 50%;" data-period="today">
+                                    <div class="chart-bar-label">4-8h</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">4↑</span>
+                                        <span class="offline-count">1↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">5</div>
+                                </div>
+                                <div class="chart-bar" style="height: 100%;" data-period="today">
+                                    <div class="chart-bar-label">8-12h</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">5↑</span>
+                                        <span class="offline-count">2↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">7</div>
+                                </div>
+                                <div class="chart-bar" style="height: 80%;" data-period="today">
+                                    <div class="chart-bar-label">12-16h</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">3↑</span>
+                                        <span class="offline-count">3↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">6</div>
+                                </div>
+                                <div class="chart-bar" style="height: 60%;" data-period="today">
+                                    <div class="chart-bar-label">16-20h</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">2↑</span>
+                                        <span class="offline-count">1↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">3</div>
+                                </div>
+                                <div class="chart-bar" style="height: 40%;" data-period="today">
+                                    <div class="chart-bar-label">20-24h</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">2↑</span>
+                                        <span class="offline-count">0↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">2</div>
+                                </div>
+                                
+                                <!-- 7 Days data (hidden initially) -->
+                                <div class="chart-bar" style="height: 90%; display: none;" data-period="week">
+                                    <div class="chart-bar-label">Mon</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">18↑</span>
+                                        <span class="offline-count">10↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">28</div>
+                                </div>
+                                <div class="chart-bar" style="height: 100%; display: none;" data-period="week">
+                                    <div class="chart-bar-label">Tue</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">21↑</span>
+                                        <span class="offline-count">9↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">30</div>
+                                </div>
+                                <div class="chart-bar" style="height: 80%; display: none;" data-period="week">
+                                    <div class="chart-bar-label">Wed</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">15↑</span>
+                                        <span class="offline-count">10↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">25</div>
+                                </div>
+                                <div class="chart-bar" style="height: 70%; display: none;" data-period="week">
+                                    <div class="chart-bar-label">Thu</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">18↑</span>
+                                        <span class="offline-count">6↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">24</div>
+                                </div>
+                                <div class="chart-bar" style="height: 85%; display: none;" data-period="week">
+                                    <div class="chart-bar-label">Fri</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">20↑</span>
+                                        <span class="offline-count">5↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">25</div>
+                                </div>
+                                <div class="chart-bar" style="height: 60%; display: none;" data-period="week">
+                                    <div class="chart-bar-label">Sat</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">11↑</span>
+                                        <span class="offline-count">9↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">20</div>
+                                </div>
+                                <div class="chart-bar" style="height: 50%; display: none;" data-period="week">
+                                    <div class="chart-bar-label">Sun</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">14↑</span>
+                                        <span class="offline-count">6↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">20</div>
+                                </div>
+                                
+                                <!-- 30 Days data (hidden initially) -->
+                                <div class="chart-bar" style="height: 100%; display: none;" data-period="month">
+                                    <div class="chart-bar-label">Week 1</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">108↑</span>
+                                        <span class="offline-count">42↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">150</div>
+                                </div>
+                                <div class="chart-bar" style="height: 85%; display: none;" data-period="month">
+                                    <div class="chart-bar-label">Week 2</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">87↑</span>
+                                        <span class="offline-count">41↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">128</div>
+                                </div>
+                                <div class="chart-bar" style="height: 90%; display: none;" data-period="month">
+                                    <div class="chart-bar-label">Week 3</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">95↑</span>
+                                        <span class="offline-count">32↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">127</div>
+                                </div>
+                                <div class="chart-bar" style="height: 80%; display: none;" data-period="month">
+                                    <div class="chart-bar-label">Week 4</div>
+                                    <div class="chart-bar-content">
+                                        <span class="online-count">76↑</span>
+                                        <span class="offline-count">33↓</span>
+                                    </div>
+                                    <div class="chart-bar-total">109</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Chart Legend -->
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color online"></div>
+                                    <span>Online (↑)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color offline"></div>
+                                    <span>Offline (↓)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Summary -->
+                        <div class="status-summary">
+                            <div class="summary-item online">
+                                <div class="summary-value" id="onlineCount">19</div>
+                                <div class="summary-label">Online Times</div>
+                            </div>
+                            <div class="summary-item offline">
+                                <div class="summary-value" id="offlineCount">9</div>
+                                <div class="summary-label">Offline Times</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Device Location -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <i class="fas fa-map-marked-alt"></i>
+                            Device Location
+                            <div class="view-all-icon" onclick="toggleMapView()">
+                                <i class="fas fa-expand-alt" id="mapToggleIcon"></i>
+                            </div>
+                        </div>
+                        <div class="device-location-section">
+                            <div class="device-map-container" id="deviceMapContainer">
+                                <div id="deviceMap" class="device-map"></div>
+                            </div>
+                            <div class="location-details">
+                                <div class="location-info-row">
+                                    <span class="location-label">Coordinates</span>
+                                    <span class="location-value">37.7749° N, 122.4194° W</span>
+                                </div>
+                                <div class="location-info-row">
+                                    <span class="location-label">Accuracy</span>
+                                    <span class="location-value">±5 meters</span>
+                                </div>
+                                <div class="location-info-row">
+                                    <span class="location-label">Last Updated</span>
+                                    <span class="location-value">3 minutes ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Remote Operations Button -->
+            <button class="remote-button" onclick="showRemoteMenu()">
+                <img src="images/operation.png" alt="Remote Operations" style="width: 24px; height: 24px;">
+            </button>
+            
+            <!-- Remote Menu Overlay -->
+            <div class="menu-overlay" id="menuOverlay" onclick="hideRemoteMenu()"></div>
+            
+            <!-- Remote Operations Menu -->
+            <div class="remote-menu" id="remoteMenu">
+                <div class="menu-header">
+                    <span class="menu-title">Remote Operations</span>
+                    <div class="menu-close" onclick="hideRemoteMenu()">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="menu-content">
+                    <!-- WiseViewer -->
+                    <div class="menu-section">
+                        <div class="section-title">WiseViewer</div>
+                        <div class="operation-item premium" onclick="confirmOperation('wiseviewer')">
+                            <div class="operation-icon premium">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="operation-details">
+                                <div class="operation-name">WiseViewer</div>
+                                <div class="operation-desc">Real-time remote screen sharing</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Safe Operations -->
+                    <div class="menu-section">
+                        <div class="section-title">Safe Operations</div>
+                        <div class="operation-item safe" onclick="executeOperation('lock')">
+                            <div class="operation-icon safe">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="operation-details">
+                                <div class="operation-name">Lock Device</div>
+                                <div class="operation-desc">Temporarily disable device access</div>
+                            </div>
+                        </div>
+                        <div class="operation-item safe" onclick="executeOperation('unlock')">
+                            <div class="operation-icon safe">
+                                <i class="fas fa-unlock"></i>
+                            </div>
+                            <div class="operation-details">
+                                <div class="operation-name">Unlock Device</div>
+                                <div class="operation-desc">Restore normal device access</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Operations -->
+                    <div class="menu-section">
+                        <div class="section-title">System Operations</div>
+                        <div class="operation-item warning" onclick="confirmOperation('restart')">
+                            <div class="operation-icon warning">
+                                <i class="fas fa-redo"></i>
+                            </div>
+                            <div class="operation-details">
+                                <div class="operation-name">Restart Device</div>
+                                <div class="operation-desc">Reboot the device system</div>
+                            </div>
+                        </div>
+                        <div class="operation-item warning" onclick="confirmOperation('shutdown')">
+                            <div class="operation-icon warning">
+                                <i class="fas fa-power-off"></i>
+                            </div>
+                            <div class="operation-details">
+                                <div class="operation-name">Shutdown Device</div>
+                                <div class="operation-desc">Safely power off the device</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Danger Zone -->
+                    <div class="menu-section">
+                        <div class="section-title">Danger Zone</div>
+                        <div class="operation-item danger" onclick="confirmOperation('factory_reset')">
+                            <div class="operation-icon danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="operation-details">
+                                <div class="operation-name">Factory Reset <span class="operation-badge badge-warning">⚠️ Irreversible</span></div>
+                                <div class="operation-desc">Erase all data and restore to factory settings</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Confirmation Modal -->
+            <div class="confirmation-modal" id="confirmationModal">
+                <div class="modal-content">
+                    <div class="modal-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="modal-title" id="modalTitle">Confirm Operation</div>
+                    <div class="modal-description" id="modalDescription">Are you sure you want to perform this operation?</div>
+                    <div class="modal-buttons">
+                        <button class="modal-button cancel" onclick="closeConfirmModal()">Cancel</button>
+                        <button class="modal-button confirm" onclick="confirmAction()" id="confirmButton">Confirm</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Apps Drawer Overlay -->
+            <div class="drawer-overlay" id="appsDrawerOverlay" onclick="hideAppsDrawer()"></div>
+            
+            <!-- Apps Drawer -->
+            <div class="apps-drawer" id="appsDrawer">
+                <div class="drawer-header">
+                    <span class="drawer-title">All Installed Applications</span>
+                    <div class="drawer-close" onclick="hideAppsDrawer()">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+                <div class="drawer-content">
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Payment Application</div>
+                            <div class="app-list-package">com.wisecloud.payment</div>
+                            <div class="app-list-version">v2.1.4</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Receipt Manager</div>
+                            <div class="app-list-package">com.wisecloud.receipt</div>
+                            <div class="app-list-version">v1.8.2</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">System Settings</div>
+                            <div class="app-list-package">com.wisecloud.settings</div>
+                            <div class="app-list-version">v3.0.1</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Security Center</div>
+                            <div class="app-list-package">com.wisecloud.security</div>
+                            <div class="app-list-version">v2.3.0</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-wifi"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Network Manager</div>
+                            <div class="app-list-package">com.wisecloud.network</div>
+                            <div class="app-list-version">v1.5.7</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Analytics Dashboard</div>
+                            <div class="app-list-package">com.wisecloud.analytics</div>
+                            <div class="app-list-version">v2.7.3</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Camera Service</div>
+                            <div class="app-list-package">com.wisecloud.camera</div>
+                            <div class="app-list-version">v1.4.1</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">File Explorer</div>
+                            <div class="app-list-package">com.wisecloud.files</div>
+                            <div class="app-list-version">v1.9.5</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-bluetooth"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Bluetooth Manager</div>
+                            <div class="app-list-package">com.wisecloud.bluetooth</div>
+                            <div class="app-list-version">v1.2.8</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Data Sync</div>
+                            <div class="app-list-package">com.wisecloud.datasync</div>
+                            <div class="app-list-version">v2.0.9</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Notification Service</div>
+                            <div class="app-list-package">com.wisecloud.notifications</div>
+                            <div class="app-list-version">v1.6.3</div>
+                        </div>
+                    </div>
+                    <div class="app-list-item">
+                        <div class="app-list-icon">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="app-list-info">
+                            <div class="app-list-name">Encryption Tools</div>
+                            <div class="app-list-package">com.wisecloud.encryption</div>
+                            <div class="app-list-version">v1.3.2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+        </div>
+    </div>
+    
+    <script>
+        function goBack() {
+            // 在当前页面打开首页
+            window.location.href = '02_homepage.html';
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // 创建临时提示
+                const toast = document.createElement('div');
+                toast.textContent = 'Copied to clipboard!';
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #1e293b;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    z-index: 1000;
+                `;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 2000);
+            }).catch(() => {
+                alert('Failed to copy to clipboard');
+            });
+        }
+        
+        let pendingOperation = null;
+        
+        function showRemoteMenu() {
+            const overlay = document.getElementById('menuOverlay');
+            const menu = document.getElementById('remoteMenu');
+            
+            overlay.classList.add('show');
+            menu.classList.add('show');
+            
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideRemoteMenu() {
+            const overlay = document.getElementById('menuOverlay');
+            const menu = document.getElementById('remoteMenu');
+            
+            overlay.classList.remove('show');
+            menu.classList.remove('show');
+            
+            // 恢复背景滚动
+            document.body.style.overflow = '';
+        }
+        
+        function executeOperation(operation) {
+            // 对于安全操作，直接执行
+            if (operation === 'lock' || operation === 'unlock') {
+                performOperation(operation);
+                hideRemoteMenu();
+            } else {
+                confirmOperation(operation);
+            }
+        }
+        
+        function confirmOperation(operation) {
+            pendingOperation = operation;
+            const modal = document.getElementById('confirmationModal');
+            const title = document.getElementById('modalTitle');
+            const description = document.getElementById('modalDescription');
+            const confirmButton = document.getElementById('confirmButton');
+            
+            switch(operation) {
+                case 'restart':
+                    title.textContent = 'Restart Device';
+                    description.textContent = 'The device will reboot and may be temporarily unavailable. Continue?';
+                    confirmButton.style.background = '#f59e0b';
+                    break;
+                case 'shutdown':
+                    title.textContent = 'Shutdown Device';
+                    description.textContent = 'The device will be powered off completely. You may need to manually restart it. Continue?';
+                    confirmButton.style.background = '#f59e0b';
+                    break;
+                case 'factory_reset':
+                    title.textContent = 'Factory Reset';
+                    description.textContent = 'This will erase ALL data and cannot be undone. Are you absolutely sure?';
+                    confirmButton.style.background = '#ef4444';
+                    break;
+                case 'wiseviewer':
+                    title.textContent = 'Start Remote Control';
+                    description.textContent = 'This will initiate remote control of the device. The device user will be notified. Continue?';
+                    confirmButton.style.background = '#8b5cf6';
+                    break;
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmationModal');
+            modal.style.display = 'none';
+            pendingOperation = null;
+        }
+        
+        function confirmAction() {
+            if (pendingOperation) {
+                performOperation(pendingOperation);
+                closeConfirmModal();
+                hideRemoteMenu();
+            }
+        }
+        
+        function performOperation(operation) {
+            // 显示操作执行中的提示
+            const operationNames = {
+                'lock': 'Locking device...',
+                'unlock': 'Unlocking device...',
+                'restart': 'Restarting device...',
+                'shutdown': 'Shutting down device...',
+                'factory_reset': 'Performing factory reset...',
+                'wiseviewer': 'Starting remote control...'
+            };
+            
+            const toast = document.createElement('div');
+            toast.textContent = operationNames[operation] || 'Executing operation...';
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #3472fe;
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 1002;
+                box-shadow: 0 8px 24px rgba(52, 114, 254, 0.3);
+            `;
+            document.body.appendChild(toast);
+            
+            // 模拟操作延迟
+            setTimeout(() => {
+                document.body.removeChild(toast);
+                
+                // 对于 WiseViewer，直接启动而不显示成功提示
+                if (operation === 'wiseviewer') {
+                    openWiseViewer();
+                    return;
+                }
+                
+                // 显示成功提示
+                const successToast = document.createElement('div');
+                successToast.textContent = 'Operation completed successfully!';
+                successToast.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #22c55e;
+                    color: white;
+                    padding: 16px 24px;
+                    border-radius: 12px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    z-index: 1002;
+                    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+                `;
+                document.body.appendChild(successToast);
+                
+                setTimeout(() => {
+                    document.body.removeChild(successToast);
+                }, 2000);
+            }, 2000);
+        }
+        
+        function openWiseViewer() {
+            hideRemoteMenu();
+            // 在当前页面打开WiseViewer远程控制页面
+            window.location.href = '05_wiseviewer.html';
+        }
+        
+        // 模拟实时数据更新
+        function updateDeviceStatus() {
+            const lastOnlineElement = document.querySelector('.info-row:nth-child(4) .info-value');
+            if (lastOnlineElement) {
+                const minutes = Math.floor(Math.random() * 5) + 1;
+                lastOnlineElement.textContent = `${minutes} minutes ago`;
+            }
+            
+            // 模拟电池电量变化
+            const batteryFill = document.querySelector('.battery-fill');
+            const batteryText = batteryFill.parentElement.previousElementSibling;
+            if (batteryFill && batteryText) {
+                const battery = Math.floor(Math.random() * 20) + 75; // 75-95%
+                batteryText.textContent = `${battery}%`;
+                batteryFill.style.width = `${battery}%`;
+                
+                // 更新电池颜色
+                batteryFill.className = 'battery-fill';
+                if (battery < 30) {
+                    batteryFill.classList.add('low');
+                } else if (battery < 60) {
+                    batteryFill.classList.add('medium');
+                }
+            }
+        }
+        
+        // 每30秒更新一次状态
+        setInterval(updateDeviceStatus, 30000);
+        
+        // Apps Drawer Functions
+        function showAppsDrawer() {
+            const drawer = document.getElementById('appsDrawer');
+            const overlay = document.getElementById('appsDrawerOverlay');
+            
+            if (drawer && overlay) {
+                overlay.classList.add('show');
+                drawer.classList.add('show');
+                
+                // Prevent scrolling in the content area
+                const contentArea = document.querySelector('.content-area');
+                if (contentArea) {
+                    contentArea.style.overflow = 'hidden';
+                }
+            }
+        }
+        
+        function hideAppsDrawer() {
+            const drawer = document.getElementById('appsDrawer');
+            const overlay = document.getElementById('appsDrawerOverlay');
+            
+            if (drawer && overlay) {
+                overlay.classList.remove('show');
+                drawer.classList.remove('show');
+                
+                // Restore scrolling in the content area
+                const contentArea = document.querySelector('.content-area');
+                if (contentArea) {
+                    contentArea.style.overflow = 'auto';
+                }
+            }
+        }
+        
+        // Close drawer on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideAppsDrawer();
+            }
+        });
+        
+        // Running Status Functions
+        function switchStatusPeriod(period, element) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.status-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            element.classList.add('active');
+            
+            // Hide all chart bars
+            document.querySelectorAll('.chart-bar').forEach(bar => {
+                bar.style.display = 'none';
+            });
+            
+            // Show bars for selected period
+            document.querySelectorAll(`[data-period="${period}"]`).forEach(bar => {
+                bar.style.display = 'block';
+            });
+            
+                    // Update summary data based on period
+        updateStatusSummary(period);
+    }
+    
+    function updateStatusSummary(period) {
+        const onlineCount = document.getElementById('onlineCount');
+        const offlineCount = document.getElementById('offlineCount');
+        
+        switch(period) {
+            case 'today':
+                onlineCount.textContent = '19';
+                offlineCount.textContent = '9';
+                break;
+            case 'week':
+                onlineCount.textContent = '117';
+                offlineCount.textContent = '55';
+                break;
+            case 'month':
+                onlineCount.textContent = '366';
+                offlineCount.textContent = '148';
+                break;
+        }
+    }
+    
+    // Device Location Map Functions
+    let deviceMap = null;
+    let deviceMarker = null;
+    let isMapExpanded = false;
+    
+    function initializeDeviceMap() {
+        // Wait for the DOM to be ready and Leaflet to be loaded
+        if (typeof L === 'undefined') {
+            setTimeout(initializeDeviceMap, 100);
+            return;
+        }
+        
+        // Device coordinates (San Francisco)
+        const deviceLat = 37.7749;
+        const deviceLng = -122.4194;
+        
+        // Initialize the map
+        deviceMap = L.map('deviceMap', {
+            center: [deviceLat, deviceLng],
+            zoom: 15,
+            zoomControl: true,
+            scrollWheelZoom: false,
+            doubleClickZoom: false,
+            dragging: true,
+            touchZoom: true
+        });
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(deviceMap);
+        
+        // Create custom device marker icon
+        const deviceIcon = L.divIcon({
+            html: '<div style="background: #3472fe; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-mobile-alt" style="color: white; font-size: 10px;"></i></div>',
+            className: 'device-marker',
+            iconSize: [26, 26],
+            iconAnchor: [13, 13]
+        });
+        
+        // Add device marker
+        deviceMarker = L.marker([deviceLat, deviceLng], { icon: deviceIcon }).addTo(deviceMap);
+        
+        // Add popup to marker
+        const popupContent = `
+            <div class="device-marker-popup">
+                <div class="device-name">WC001234567</div>
+                <div class="device-status">
+                    <i class="fas fa-circle" style="font-size: 6px;"></i>
+                    Online
+                </div>
+                <div class="device-coords">${deviceLat.toFixed(4)}°N, ${Math.abs(deviceLng).toFixed(4)}°W</div>
+            </div>
+        `;
+        
+        deviceMarker.bindPopup(popupContent, {
+            closeButton: false,
+            className: 'device-popup'
+        });
+        
+        // Show popup by default
+        deviceMarker.openPopup();
+        
+        // Add accuracy circle
+        const accuracyCircle = L.circle([deviceLat, deviceLng], {
+            color: '#3472fe',
+            fillColor: '#3472fe',
+            fillOpacity: 0.1,
+            radius: 5 // 5 meters accuracy
+        }).addTo(deviceMap);
+        
+        // Resize map when container changes
+        setTimeout(() => {
+            deviceMap.invalidateSize();
+        }, 100);
+    }
+    
+    function toggleMapView() {
+        const mapContainer = document.getElementById('deviceMap');
+        const toggleIcon = document.getElementById('mapToggleIcon');
+        
+        isMapExpanded = !isMapExpanded;
+        
+        if (isMapExpanded) {
+            mapContainer.classList.add('expanded');
+            toggleIcon.className = 'fas fa-compress-alt';
+        } else {
+            mapContainer.classList.remove('expanded');
+            toggleIcon.className = 'fas fa-expand-alt';
+        }
+        
+        // Resize map after animation
+        setTimeout(() => {
+            if (deviceMap) {
+                deviceMap.invalidateSize();
+            }
+        }, 350);
+    }
+    
+    // Update device location periodically
+    function updateDeviceLocation() {
+        if (!deviceMarker) return;
+        
+        // Simulate slight location changes (within accuracy range)
+        const baseLatitude = 37.7749;
+        const baseLongitude = -122.4194;
+        const accuracy = 0.0001; // Roughly 10 meters
+        
+        const newLat = baseLatitude + (Math.random() - 0.5) * accuracy;
+        const newLng = baseLongitude + (Math.random() - 0.5) * accuracy;
+        
+        // Update marker position
+        deviceMarker.setLatLng([newLat, newLng]);
+        
+        // Update popup content
+        const popupContent = `
+            <div class="device-marker-popup">
+                <div class="device-name">WC001234567</div>
+                <div class="device-status">
+                    <i class="fas fa-circle" style="font-size: 6px;"></i>
+                    Online
+                </div>
+                <div class="device-coords">${newLat.toFixed(4)}°N, ${Math.abs(newLng).toFixed(4)}°W</div>
+            </div>
+        `;
+        
+        deviceMarker.getPopup().setContent(popupContent);
+        
+        // Update coordinates in the info panel
+        const coordsElement = document.querySelector('.location-value');
+        if (coordsElement) {
+            coordsElement.textContent = `${newLat.toFixed(4)}° N, ${Math.abs(newLng).toFixed(4)}° W`;
+        }
+        
+        // Update last updated time
+        const lastUpdatedElement = document.querySelectorAll('.location-value')[2];
+        if (lastUpdatedElement) {
+            lastUpdatedElement.textContent = 'Just now';
+        }
+    }
+    
+    // Initialize map when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map after a short delay to ensure DOM is ready
+        setTimeout(initializeDeviceMap, 500);
+        
+        // Update location every 30 seconds
+        setInterval(updateDeviceLocation, 30000);
+    });
+    </script>
+
+</body>
+</html>

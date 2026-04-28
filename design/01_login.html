@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiseCloud Mobile - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .primary-color { color: #3472fe; }
+        .primary-bg { background-color: #3472fe; }
+        .primary-border { border-color: #3472fe; }
+        .gradient-bg { background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%); }
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #3472fe;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .content-area {
+            height: calc(100% - 44px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+            border-radius: 32px 32px 0 0;
+            margin-top: 20px;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .input-field {
+            width: 100%;
+            height: 56px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 0 20px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3472fe;
+            box-shadow: 0 0 0 3px rgba(52, 114, 254, 0.1);
+        }
+        .input-label {
+            position: absolute;
+            top: -8px;
+            left: 16px;
+            background: #f8fafc;
+            padding: 0 8px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .verification-section {
+            margin-bottom: 20px;
+        }
+        .verification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .verification-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .mfa-toggle {
+            color: #3472fe;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: underline;
+        }
+        .mfa-toggle:hover {
+            color: #2563eb;
+        }
+        .verification-input-container {
+            position: relative;
+        }
+        .get-code-button {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #3472fe;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .get-code-button:hover {
+            background: #2563eb;
+        }
+        .get-code-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        .verification-input {
+            padding-right: 100px;
+        }
+        .login-button {
+            width: 100%;
+            height: 56px;
+            background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(52, 114, 254, 0.3);
+        }
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(52, 114, 254, 0.4);
+        }
+        .remember-password {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            margin-right: 12px;
+            position: relative;
+            cursor: pointer;
+        }
+        .checkbox.checked {
+            background: #3472fe;
+            border-color: #3472fe;
+        }
+        .checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .logo-section {
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 40px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(52, 114, 254, 0.3);
+            padding: 16px;
+        }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .app-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .app-subtitle {
+            font-size: 16px;
+            color: #64748b;
+            font-weight: 400;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .page-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+    </style>
+</head>
+  <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <h1 class="page-title">Email code</h1>
+    <div class="phone-container">
+        <div class="screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-signal text-sm"></i>
+                    <i class="fas fa-wifi text-sm"></i>
+                    <i class="fas fa-battery-three-quarters text-sm"></i>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Logo Section -->
+                <div class="logo-section">
+                    <div class="logo">
+                        <svg width="80" height="80" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="512" height="512" rx="100" fill="#3472fe"/>
+                            <path d="M128 256c0-70.7 57.3-128 128-128s128 57.3 128 128c0 35.3-14.3 67.3-37.5 90.5l-22.6-22.6c15.6-15.6 25.3-37.1 25.3-60.9 0-47.1-38.1-85.3-85.3-85.3s-85.3 38.1-85.3 85.3c0 23.8 9.7 45.3 25.3 60.9l-22.6 22.6C142.3 323.3 128 291.3 128 256z" fill="white"/>
+                            <path d="M192 256c0-35.3 28.7-64 64-64s64 28.7 64 64c0 17.7-7.2 33.7-18.7 45.3l-22.6-22.6c5.9-5.9 9.6-14.1 9.6-23.1 0-17.7-14.3-32-32-32s-32 14.3-32 32c0 9 3.7 17.2 9.6 23.1l-22.6 22.6C199.2 289.7 192 273.7 192 256z" fill="white"/>
+                            <circle cx="256" cy="256" r="21.3" fill="white"/>
+                        </svg>
+                    </div>
+                    <h1 class="app-name">WiseCloud</h1>
+                    <p class="app-subtitle">Smart Device Management Platform</p>
+                </div>
+                
+                <!-- Login Form -->
+                <div class="flex-1">
+                    <div class="input-group">
+                        <label class="input-label">Account</label>
+                        <input type="email" class="input-field" placeholder="Enter your account email" value="demo@abc.com">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Password</label>
+                        <input type="password" class="input-field" placeholder="Enter your password" id="password" value="123456">
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+                    </div>
+                    
+                    <div class="verification-section">
+                        <div class="verification-header">
+                            <span class="verification-label">Verification Code</span>
+                            <span class="mfa-toggle" onclick="toggleMFA()">Switch to MFA</span>
+                        </div>
+                        <div class="verification-input-container">
+                            <input type="text" class="input-field verification-input" placeholder="Enter email verification code" id="verificationCode">
+                            <button class="get-code-button" onclick="getVerificationCode()" id="getCodeBtn">
+                                <span id="getCodeText">Get Code</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="remember-password">
+                        <div class="checkbox" onclick="toggleCheckbox(this)"></div>
+                        <span class="text-sm text-gray-600">Remember Password</span>
+                    </div>
+                    
+                    <button class="login-button" onclick="login()">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Secure Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+        
+        function toggleCheckbox(checkbox) {
+            checkbox.classList.toggle('checked');
+        }
+        
+        function toggleMFA() {
+            const verificationInput = document.getElementById('verificationCode');
+            const mfaToggle = document.querySelector('.mfa-toggle');
+            const getCodeBtn = document.getElementById('getCodeBtn');
+            
+            if (verificationInput.placeholder.includes('email')) {
+                verificationInput.placeholder = 'Enter MFA code';
+                mfaToggle.textContent = 'Switch to Email';
+                getCodeBtn.style.display = 'none';
+                verificationInput.classList.remove('verification-input');
+            } else {
+                verificationInput.placeholder = 'Enter email verification code';
+                mfaToggle.textContent = 'Switch to MFA';
+                getCodeBtn.style.display = 'block';
+                verificationInput.classList.add('verification-input');
+            }
+        }
+        
+        let countdown = 0;
+        let countdownTimer = null;
+        
+        function getVerificationCode() {
+            const emailInput = document.querySelector('input[type="email"]');
+            const getCodeBtn = document.getElementById('getCodeBtn');
+            const getCodeText = document.getElementById('getCodeText');
+            
+            // 验证邮箱是否已填写
+            if (!emailInput.value.trim()) {
+                alert('Please enter your email address first');
+                emailInput.focus();
+                return;
+            }
+            
+            // 验证邮箱格式
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value)) {
+                alert('Please enter a valid email address');
+                emailInput.focus();
+                return;
+            }
+            
+            // 开始倒计时
+            countdown = 60;
+            getCodeBtn.disabled = true;
+            
+            countdownTimer = setInterval(() => {
+                getCodeText.textContent = `${countdown}s`;
+                countdown--;
+                
+                if (countdown < 0) {
+                    clearInterval(countdownTimer);
+                    getCodeBtn.disabled = false;
+                    getCodeText.textContent = 'Get Code';
+                }
+            }, 1000);
+            
+            // 这里可以添加实际的API调用
+            console.log('Sending verification code to:', emailInput.value);
+        }
+
+        function login() {
+            // 简单的表单验证
+            const emailInput = document.querySelector('input[type="email"]');
+            const passwordInput = document.getElementById('password');
+            
+            if (!emailInput || !passwordInput || !emailInput.value || !passwordInput.value) {
+                alert('Please enter email and password');
+                return;
+            }
+            
+            // 跳转到首页
+            window.location.href = '02_homepage.html';
+        }
+    </script>
+</body>
+</html>

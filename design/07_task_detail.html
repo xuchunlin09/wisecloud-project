@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Detail - WiseCloud Mobile</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3472fe;
+            --primary-light: #eff6ff;
+            --success: #22c55e;
+            --success-light: #f0fdf4;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --error: #ef4444;
+            --error-light: #fef2f2;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-main: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e8edf5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #111;
+            border-radius: 44px;
+            padding: 8px;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-main);
+            border-radius: 36px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Status Bar ── */
+        .status-bar {
+            height: 44px;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+            background: white;
+        }
+
+        /* ── Sticky nav header ── */
+        .sticky-header {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px 8px;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-main);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .icon-btn:active { transform: scale(0.9); background: var(--border-color); }
+        .icon-btn i { font-size: 13px; }
+
+        .page-title {
+            flex: 1;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Task meta strip ── */
+        .task-meta-strip {
+            padding: 0 16px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .task-creator {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .badge-completed { background: var(--success); color: white; }
+        .badge-failed    { background: var(--error); color: white; }
+        .badge-progress  { background: var(--primary); color: white; }
+        .badge-pending   { background: #e2e8f0; color: var(--text-muted); }
+
+        .meta-chips {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 2px;
+        }
+        .meta-chip {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .meta-chip i { font-size: 10px; }
+        .meta-chip.link { color: var(--primary); cursor: pointer; }
+
+        /* ── Underline tabs (device status) ── */
+        .status-tabs {
+            display: flex;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .status-tabs::-webkit-scrollbar { display: none; }
+
+        .status-tab {
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #94a3b8;
+            white-space: nowrap;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+        .status-tab.active {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .status-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 14px;
+            right: 14px;
+            height: 2.5px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* ── Scrollable body area ── */
+        .scroll-body {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── App info card ── */
+        .section-card {
+            background: white;
+            margin: 14px 16px 0;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+        }
+
+        .app-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .app-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 26px;
+            box-shadow: 0 4px 10px rgba(34,197,94,0.25);
+            flex-shrink: 0;
+        }
+
+        .app-info-text h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 2px;
+        }
+        .app-info-text p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 0;
+            border-top: 1px solid #f1f5f9;
+        }
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* iOS switch */
+        .ios-switch {
+            width: 44px;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.25s;
+            flex-shrink: 0;
+        }
+        .ios-switch.on { background: var(--primary); }
+        .ios-switch::after {
+            content: '';
+            position: absolute;
+            left: 2px; top: 2px;
+            width: 20px; height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+        .ios-switch.on::after { transform: translateX(20px); }
+
+        /* ── Device count summary ── */
+        .device-summary {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            background: white;
+            margin: 12px 16px 0;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+        }
+        .device-summary strong { color: var(--text-main); }
+        .device-summary .link { color: var(--primary); cursor: pointer; }
+
+        /* ── Device list section ── */
+        .device-list-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 14px 16px 16px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* search pill inside list */
+        .list-search {
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .list-search i { color: #94a3b8; font-size: 13px; flex-shrink: 0; }
+        .list-search input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background: transparent;
+        }
+        .list-search input::placeholder { color: #94a3b8; }
+
+        .device-rows {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .device-row {
+            padding: 13px 14px;
+            border-bottom: 1px solid #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .device-row:last-child { border-bottom: none; }
+        .device-row:active { background: #f8fafc; }
+
+        .device-sn {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .device-sub {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .pill-success { background: var(--success-light); color: var(--success); }
+        .pill-failed  { background: var(--error-light);   color: var(--error); }
+
+        /* Pagination bar */
+        .list-footer {
+            padding: 10px 14px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-count {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .page-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .page-dot {
+            width: 6px; height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+            transition: all 0.2s;
+        }
+        .page-dot.active {
+            width: 18px;
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="screen">
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-signal" style="font-size:12px;"></i>
+                    <i class="fas fa-wifi" style="font-size:12px;"></i>
+                    <span style="font-size:11px;">85%</span>
+                    <i class="fas fa-battery-three-quarters" style="font-size:12px;"></i>
+                </div>
+            </div>
+
+            <!-- Sticky Header -->
+            <div class="sticky-header">
+                <!-- Nav Bar -->
+                <div class="nav-bar">
+                    <div class="icon-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left" style="color:#3472fe;"></i>
+                    </div>
+                    <div class="page-title" id="pageTitle">App push</div>
+                    <div class="icon-btn">
+                        <i class="fas fa-ellipsis-v" style="color:#64748b;"></i>
+                    </div>
+                </div>
+
+                <!-- Task meta strip -->
+                <div class="task-meta-strip">
+                    <span class="task-creator">dms</span>
+                    <i class="fas fa-pen" style="font-size:10px;color:#94a3b8;cursor:pointer;"></i>
+                    <span class="status-badge badge-completed">Completed</span>
+                    <div class="meta-chips">
+                        <span class="meta-chip"><i class="far fa-clock"></i> 2026-04-23 13:50</span>
+                        <span class="meta-chip"><i class="far fa-user"></i> Admin</span>
+                        <span class="meta-chip link"><i class="far fa-heart"></i> Following</span>
+                    </div>
+                </div>
+
+                <!-- Device status underline tabs -->
+                <div class="status-tabs">
+                    <div class="status-tab active" onclick="switchTab(this, 'completed')">Completed(72)</div>
+                    <div class="status-tab" onclick="switchTab(this, 'failed')">Failed(75)</div>
+                    <div class="status-tab" onclick="switchTab(this, 'executing')">Executing(0)</div>
+                    <div class="status-tab" onclick="switchTab(this, 'preparing')">Preparing(0)</div>
+                </div>
+            </div>
+
+            <!-- Scrollable Body -->
+            <div class="scroll-body">
+
+                <!-- App Info Card -->
+                <div class="section-card">
+                    <div class="app-row">
+                        <div class="app-logo">
+                            <i class="fab fa-android"></i>
+                        </div>
+                        <div class="app-info-text">
+                            <h3>WisecloudDMS</h3>
+                            <p>Version V3.7.9.0428_3X</p>
+                        </div>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Update at leisure</span>
+                        <div class="ios-switch" onclick="this.classList.toggle('on')"></div>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">WIFI only</span>
+                        <div class="ios-switch on" onclick="this.classList.toggle('on')"></div>
+                    </div>
+                </div>
+
+                <!-- Device Count Summary -->
+                <div class="device-summary">
+                    Currently, <strong>148</strong> devices are added to this task, including
+                    <strong>147</strong> valid devices and 1 invalid device.
+                    <span class="link"> Device adding records</span>
+                </div>
+
+                <!-- Device List Card -->
+                <div class="device-list-section">
+                    <!-- Search inside list -->
+                    <div class="list-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search Device SN...">
+                    </div>
+
+                    <!-- Rows -->
+                    <div class="device-rows" id="deviceRows"></div>
+
+                    <!-- Footer -->
+                    <div class="list-footer">
+                        <span class="footer-count">Showing 6 of 72</span>
+                        <div class="page-dots">
+                            <div class="page-dot active"></div>
+                            <div class="page-dot"></div>
+                            <div class="page-dot"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- end scroll-body -->
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = '07_task_management.html';
+        }
+
+        // Underline tab switch
+        function switchTab(el, category) {
+            document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderRows(category);
+        }
+
+        // Device data
+        const deviceData = {
+            completed: [
+                { sn: 'PP35272203000149', time: '2 mins ago' },
+                { sn: 'PP35272203000143', time: '3 mins ago' },
+                { sn: 'PP35272203000023', time: '5 mins ago' },
+                { sn: 'PP35272203000148', time: '7 mins ago' },
+                { sn: 'PP35272222000578', time: '10 mins ago' },
+                { sn: 'PP35272203000140', time: '12 mins ago' },
+            ],
+            failed: [
+                { sn: 'PP35272203000210', time: '8 mins ago' },
+                { sn: 'PP35272203000211', time: '9 mins ago' },
+            ],
+            executing: [],
+            preparing: []
+        };
+
+        function renderRows(category) {
+            const container = document.getElementById('deviceRows');
+            container.innerHTML = '';
+            const rows = deviceData[category] || [];
+
+            if (rows.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:32px 20px;color:#94a3b8;font-size:13px;">
+                        <i class="fas fa-inbox" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                        No devices in this status
+                    </div>`;
+                return;
+            }
+
+            const isSuccess = category === 'completed' || category === 'executing';
+            rows.forEach(d => {
+                const row = document.createElement('div');
+                row.className = 'device-row';
+                row.innerHTML = `
+                    <div>
+                        <div class="device-sn">${d.sn}</div>
+                        <div class="device-sub">Updated ${d.time}</div>
+                    </div>
+                    <div class="status-pill ${isSuccess ? 'pill-success' : 'pill-failed'}">
+                        <i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                        ${category === 'completed' ? 'Succeed' : category === 'failed' ? 'Failed' : category}
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Init
+        renderRows('completed');
+
+        // Set page title from URL
+        const params = new URLSearchParams(window.location.search);
+        const taskName = params.get('name');
+        if (taskName) document.getElementById('pageTitle').textContent = taskName;
+    </script>
+</body>
+</html>

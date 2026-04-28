@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management - WiseCloud Mobile</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .primary-color { color: #3472fe; }
+        .primary-bg { background-color: #3472fe; }
+        .primary-border { border-color: #3472fe; }
+        .gradient-bg { background: linear-gradient(135deg, #3472fe 0%, #4f7cff 100%); }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f8fafc;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .content-area {
+            height: calc(100% - 44px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Sticky header block */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: #f8fafc;
+            padding: 12px 20px 0;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .back-btn:active { background: #f1f5f9; }
+        .page-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            flex: 1;
+        }
+
+        /* Search row */
+        .search-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .search-pill {
+            flex: 1;
+            height: 38px;
+            background: white;
+            border-radius: 19px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            gap: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .search-pill i { color: #94a3b8; font-size: 13px; }
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            background: transparent;
+            color: #1e293b;
+        }
+        .search-input::placeholder { color: #94a3b8; }
+        .filter-icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 19px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            transition: all 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .filter-icon-btn i { color: #64748b; font-size: 14px; }
+        .filter-icon-btn.has-filter {
+            background: #3472fe;
+            border-color: #3472fe;
+        }
+        .filter-icon-btn.has-filter i { color: white; }
+        .filter-badge {
+            display: none;
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid #f8fafc;
+        }
+        .filter-icon-btn.has-filter .filter-badge { display: block; }
+
+        /* Underline-style nav tabs */
+        .nav-tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin: 0 -20px;
+            padding: 0 20px;
+        }
+        .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 4px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #94a3b8;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+            white-space: nowrap;
+        }
+        .nav-tab.active {
+            color: #3472fe;
+            font-weight: 700;
+        }
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 20%;
+            right: 20%;
+            height: 2.5px;
+            background: #3472fe;
+            border-radius: 2px;
+        }
+
+        /* Scrollable type chips */
+        .type-chips {
+            display: none;
+            gap: 8px;
+            padding: 12px 20px;
+            margin: 0 -20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            background: white;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .type-chips::-webkit-scrollbar { display: none; }
+        .type-chips.visible { display: flex; }
+        .type-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #64748b;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.18s;
+            flex-shrink: 0;
+        }
+        .type-chip.active {
+            background: #3472fe;
+            color: white;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .task-card {
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .task-card:active {
+            transform: scale(0.98);
+            background: #f8fafc;
+        }
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .task-info {
+            flex: 1;
+        }
+        .task-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .task-meta {
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            gap: 12px;
+        }
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .task-status {
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-in-progress {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .status-completed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .status-failed {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .status-pending {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .task-progress {
+            margin-top: 12px;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .progress-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .progress-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .progress-fill.blue { background: linear-gradient(90deg, #3472fe, #4f7cff); }
+        .progress-fill.green { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .progress-fill.red { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+        .device-list-preview {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .device-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .device-list-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .device-expand-icon {
+            font-size: 12px;
+            color: #94a3b8;
+            transition: transform 0.3s ease;
+        }
+        .device-expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+        .device-list-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .device-list-content.expanded {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+        .device-item:last-child {
+            border-bottom: none;
+        }
+        .device-checkbox {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .device-checkbox.checked {
+            background: #3472fe;
+            border-color: #3472fe;
+            color: white;
+        }
+        .device-sn {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .device-model {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: #f1f5f9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .empty-icon i {
+            font-size: 32px;
+            color: #94a3b8;
+        }
+        .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .empty-desc {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #3472fe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="phone-container">
+        <div class="screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="flex items-center space-x-1">
+                    <i class="fas fa-signal text-sm"></i>
+                    <i class="fas fa-wifi text-sm"></i>
+                    <i class="fas fa-battery-three-quarters text-sm"></i>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Sticky header -->
+                <div class="sticky-header">
+                    <!-- Page Header -->
+                    <div class="page-header">
+                        <div class="back-btn" onclick="goBack()">
+                            <i class="fas fa-arrow-left primary-color" style="font-size:13px;"></i>
+                        </div>
+                        <div class="page-title">Task Management</div>
+                    </div>
+
+                    <!-- Search Row -->
+                    <div class="search-row">
+                        <div class="search-pill">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="search-input" placeholder="Search task name..."
+                                   oninput="handleSearch(this.value)">
+                        </div>
+                        <div class="filter-icon-btn" id="filterIconBtn" onclick="toggleTypeChips()">
+                            <i class="fas fa-sliders-h"></i>
+                            <div class="filter-badge"></div>
+                        </div>
+                    </div>
+
+                    <!-- Underline Tabs -->
+                    <div class="nav-tabs">
+                        <div class="nav-tab active" onclick="setFilter('all', this)">All task</div>
+                        <div class="nav-tab" onclick="setFilter('following', this)">My following</div>
+                        <div class="nav-tab" onclick="setFilter('partner', this)">Partner's tasks</div>
+                    </div>
+                </div>
+
+                <!-- Type Chips (shown/hidden by filter btn) -->
+                <div class="type-chips" id="typeChips">
+                    <div class="type-chip active" onclick="setTypeFilter('all', this)">All</div>
+                    <div class="type-chip" onclick="setTypeFilter('OTA update', this)">OTA update</div>
+                    <div class="type-chip" onclick="setTypeFilter('Push app', this)">Push app</div>
+                    <div class="type-chip" onclick="setTypeFilter('Push instruction', this)">Push instruction</div>
+                    <div class="type-chip" onclick="setTypeFilter('Add device', this)">Add device</div>
+                    <div class="type-chip" onclick="setTypeFilter('File push', this)">File push</div>
+                    <div class="type-chip" onclick="setTypeFilter('App uninstall', this)">App uninstall</div>
+                    <div class="type-chip" onclick="setTypeFilter('Suspend or resume', this)">Suspend or resume</div>
+                </div>
+
+                <!-- Scrollable task area -->
+                <div style="flex:1; overflow-y:auto; padding: 16px 20px;">
+
+
+
+                <!-- Task List (Normal State) -->
+                <div class="task-list" id="taskList">
+                    <!-- Task 1: OTA update -->
+                    <div class="task-card" onclick="goToDetail('Firmware Upgrade v2.5.0')">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <div class="task-name">Firmware Upgrade v2.5.0</div>
+                            </div>
+                            <div class="task-status status-in-progress">OTA update</div>
+                        </div>
+                        <div class="task-progress">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-value">7/12 completed</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill blue" style="width: 58%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 2: Push app (following) -->
+                    <div class="task-card" onclick="goToDetail('WisecloudDMS v3.7')" data-following="true">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <div class="task-name">WisecloudDMS v3.7</div>
+                            </div>
+                            <div class="task-status status-completed">Push app</div>
+                        </div>
+                        <div class="task-progress">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-value">148/148 completed</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill green" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 3: Push instruction -->
+                    <div class="task-card" onclick="goToDetail('Enable Debug Mode')">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <div class="task-name">Enable Debug Mode</div>
+                            </div>
+                            <div class="task-status status-failed">Push instruction</div>
+                        </div>
+                        <div class="task-progress">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-value">5/8 completed • 3 failed</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill red" style="width: 62%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 4: File push (partner) -->
+                    <div class="task-card" onclick="goToDetail('Configuration Config.xml')" data-partner="true">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <div class="task-name">Configuration Config.xml</div>
+                            </div>
+                            <div class="task-status status-pending">File push</div>
+                        </div>
+                        <div class="task-progress">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-value">0/20 waiting</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill blue" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 5: App uninstall -->
+                    <div class="task-card" onclick="goToDetail('Clean Legacy Browser')">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <div class="task-name">Clean Legacy Browser</div>
+                            </div>
+                            <div class="task-status status-completed">App uninstall</div>
+                        </div>
+                        <div class="task-progress">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-value">50/50 completed</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill green" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 6: Suspend or resume -->
+                    <div class="task-card" onclick="goToDetail('Task Control Action')">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <div class="task-name">Task Control Action</div>
+                            </div>
+                            <div class="task-status status-in-progress">Suspend or resume</div>
+                        </div>
+                        <div class="task-progress">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-value">12/30 processing</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill blue" style="width: 40%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State (hidden by default) -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="empty-title">No tasks found</div>
+                    <div class="empty-desc">Try adjusting your search or filter</div>
+                </div>
+
+                <!-- Loading State (hidden by default) -->
+                <div class="loading-state" id="loadingState" style="display: none;">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Loading tasks...</div>
+                </div>
+                </div><!-- end scrollable task area -->
+            </div><!-- end content-area -->
+    </div>
+
+    <!-- URL param hint for state switching -->
+    <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #64748b;">
+        <p>State toggles (add to URL):</p>
+        <p>?state=loading | ?state=empty</p>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let typeFilter = 'all';
+        let chipsVisible = false;
+
+        function goBack() {
+            window.location.href = '02_homepage.html';
+        }
+
+        function setFilter(filter, el) {
+            currentFilter = filter;
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            filterTasks();
+        }
+
+        function handleSearch(value) {
+            searchQuery = value.trim().toLowerCase();
+            filterTasks();
+        }
+
+        function toggleTypeChips() {
+            chipsVisible = !chipsVisible;
+            document.getElementById('typeChips').classList.toggle('visible', chipsVisible);
+        }
+
+        function setTypeFilter(type, el) {
+            typeFilter = type;
+            document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            const btn = document.getElementById('filterIconBtn');
+            btn.classList.toggle('has-filter', type !== 'all');
+            filterTasks();
+        }
+
+        function filterTasks() {
+            const tasks = document.querySelectorAll('.task-card');
+            tasks.forEach(task => {
+                const name = task.querySelector('.task-name').textContent.toLowerCase();
+                const type = task.querySelector('.task-status').textContent.trim();
+                const isFollowing = task.dataset.following === 'true';
+                const isPartner = task.dataset.partner === 'true';
+
+                const matchesSearch = searchQuery === '' || name.includes(searchQuery);
+                const matchesType = typeFilter === 'all' || type === typeFilter;
+
+                let matchesCategory = true;
+                if (currentFilter === 'following') matchesCategory = isFollowing;
+                if (currentFilter === 'partner') matchesCategory = isPartner;
+
+                task.style.display = matchesSearch && matchesType && matchesCategory ? 'block' : 'none';
+            });
+
+            const visibleTasks = Array.from(tasks).filter(t => t.style.display !== 'none');
+            document.getElementById('taskList').style.display = visibleTasks.length > 0 ? 'flex' : 'none';
+            document.getElementById('emptyState').style.display = visibleTasks.length > 0 ? 'none' : 'block';
+        }
+
+        function goToDetail(taskName) {
+            window.location.href = `07_task_detail.html?name=${encodeURIComponent(taskName)}`;
+        }
+
+        function toggleDeviceList(card) {
+            const content = card.querySelector('.device-list-content');
+            const icon = card.querySelector('.device-expand-icon');
+            if (content) {
+                content.classList.toggle('expanded');
+                icon.classList.toggle('expanded');
+            }
+        }
+
+        // URL state handling for demo
+        function handleURLState() {
+            const params = new URLSearchParams(window.location.search);
+            const state = params.get('state');
+            const taskList = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyState');
+            const loadingState = document.getElementById('loadingState');
+
+            if (state === 'loading') {
+                taskList.style.display = 'none';
+                emptyState.style.display = 'none';
+                loadingState.style.display = 'flex';
+            } else if (state === 'empty') {
+                taskList.style.display = 'none';
+                emptyState.style.display = 'block';
+                loadingState.style.display = 'none';
+            }
+        }
+
+        handleURLState();
+    </script>
+</body>
+</html>
