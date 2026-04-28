@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WiseCloud MDM</string>
+
+    <!-- Auth -->
+    <string name="login_title">登录</string>
+    <string name="register_title">注册</string>
+    <string name="hint_username">用户名</string>
+    <string name="hint_password">密码</string>
+    <string name="hint_email">邮箱</string>
+    <string name="hint_confirm_password">确认密码</string>
+    <string name="btn_login">登录</string>
+    <string name="btn_register">注册</string>
+    <string name="go_to_register">没有账号？去注册</string>
+    <string name="go_to_login">已有账号？去登录</string>
+    <string name="error_passwords_not_match">两次密码输入不一致</string>
+    <string name="error_fields_required">请填写所有字段</string>
+    <string name="register_success">注册成功，请登录</string>
+    <string name="error_network">网络连接失败，请检查网络设置</string>
+
+    <!-- Home -->
+    <string name="home_title">首页</string>
+    <string name="overview_title">设备概览</string>
+    <string name="overview_total_devices">设备总数</string>
+    <string name="overview_online_devices">在线设备</string>
+    <string name="overview_online_rate">在线率</string>
+    <string name="hint_search_sn">输入 SN 搜索设备</string>
+    <string name="btn_search">搜索</string>
+    <string name="search_empty">未找到匹配的设备</string>
+    <string name="status_online">在线</string>
+    <string name="status_offline">离线</string>
+
+    <!-- Device Detail -->
+    <string name="device_detail_title">设备详情</string>
+    <string name="detail_label_sn">SN</string>
+    <string name="detail_label_rom">ROM 版本</string>
+    <string name="detail_label_battery">电池电量</string>
+    <string name="detail_label_wifi">WiFi 状态</string>
+    <string name="detail_label_gprs">移动网络</string>
+    <string name="detail_label_location">位置</string>
+    <string name="detail_installed_apps">已安装应用</string>
+    <string name="detail_no_apps">暂无已安装应用</string>
+    <string name="detail_unknown">未知</string>
+    <string name="detail_connected">已连接</string>
+    <string name="detail_disconnected">未连接</string>
+</resources>

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wisecloud-mdm
+  namespace: wisecloud-mdm
+  labels:
+    app: wisecloud-mdm
+spec:
+  type: ClusterIP
+  selector:
+    app: wisecloud-mdm
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP

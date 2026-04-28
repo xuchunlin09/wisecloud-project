@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wisecloud-mdm
+  namespace: wisecloud-mdm
+  labels:
+    app: wisecloud-mdm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wisecloud-mdm
+  template:
+    metadata:
+      labels:
+        app: wisecloud-mdm
+    spec:
+      containers:
+        - name: wisecloud-mdm
+          image: wisecloud-mdm:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: wisecloud-mdm-secret
+                  key: db-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wisecloud-mdm-secret
+                  key: db-password
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: wisecloud-mdm-secret
+                  key: db-url
+            - name: WISECLOUD_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: wisecloud-mdm-secret
+                  key: wisecloud-ak
+            - name: WISECLOUD_ACCESS_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: wisecloud-mdm-secret
+                  key: wisecloud-sk
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: wisecloud-mdm-secret
+                  key: jwt-secret
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            failureThreshold: 3

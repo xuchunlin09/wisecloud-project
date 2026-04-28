@@ -1,0 +1,15 @@
+package com.wisecloud.mdm.repository;
+
+import com.wisecloud.mdm.entity.Device;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface DeviceRepository extends JpaRepository<Device, Long> {
+
+    List<Device> findBySnContaining(String keyword);
+
+    boolean existsBySn(String sn);
+}
